@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'custom/css/headers.css' %}">
+    <link rel="stylesheet" href="{% static 'custom/css/footers.css' %}">
+    <link rel="stylesheet" href="{% static 'datatables/DataTables-1.11.4/css/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'datatables/fixedcolumns-4.0.1/fixedColumns.dataTables.min.css' %}">
+
+    <script src="{% static 'datatables/fixedcolumns-4.0.1/jquery.dataTables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <wrapper class="d-flex flex-column min-vh-100">
+    <header class="wrap navbar-fixed-top p-3 bg-dark border-bottom">
+    <div class="container-fluid">
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none">
+          <img class="bi me-2" src="{% static 'deft.svg' %}" alt="DEFT" width="70" height="70">
+        </a>
+
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 fw-bolder">
+          <li><a href="{% url 'dashboard_view' %}" class="nav-link px-2 link-secondary" style="color: white">Dashboard</a></li>
+{#          <li><a href="#" class="nav-link px-2 link-dark" style="color: white">Tutorial</a></li>#}
+        </ul>
+
+        <div class="dropdown text-end">
+          <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            {% load static %}
+              <img src="{% static 'avatar.png' %}" alt="avatar" width="32" height="32" class="rounded-circle">
+          </a>
+          <ul class="dropdown-menu text-small" aria-labelledby="dropdownUser1" style="z-index: 9999;">
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'frontend_logout_view' %}">Sign out</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    {% block datacontent %} {% endblock datacontent %}
+
+
+    <footer class="wrap py-3 my-4 flex-grow-0 flex-shrink-1" style="height: 2.5rem; padding-top: 0px !important;margin-top: 0px !important;">
+        <ul class="nav justify-content-center border-bottom pb-2 mb-2"></ul>
+        <p class="text-center text-muted">&copy; 2022</p>
+    </footer>
+    </wrapper>
+{% endblock %}
+
+

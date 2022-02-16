@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+:root {
+  --primary: #0780ac;
+  --secondary: black;
+  --link-fg: #0a86b8;
+  --link-selected-fg: #26b0b7;
+}
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: #f8f8f8;
+    font-weight: bolder;
+}
+</style>
+{% endblock %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

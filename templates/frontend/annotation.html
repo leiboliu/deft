@@ -1,0 +1,379 @@
+{% extends 'frontend/frontend_base.html' %}
+
+{% block header %}
+
+    <title>Annotation</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'custom/css/annotation.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap4-toggle/css/bootstrap4-toggle.min.css' %}">
+    <script src="{% static 'custom/js/annotation.js' %}"></script>
+    <script src="{% static 'bootstrap4-toggle/js/bootstrap4-toggle.min.js' %}"></script>
+
+    <style>
+
+    </style>
+
+{% endblock %}
+
+{% block datacontent %}
+<main role="main" class="container-fluid flex-grow-1">
+
+        <div class="row">
+            <div class="col-sm-2 p-0 m-0 overflow-auto" style="border-right: 1px inset lightgrey;">
+                <div class="card border-0 sticky-top">
+                    <div class="card-header py-3 bg-body border-bottom-0">
+                    <nav aria-label="breadcrumb" class="navbar">
+                    <ol class="breadcrumb" style="min-width: 100%">
+                        <li class="breadcrumb-item active" aria-current="page"><a class="link-secondary" href="{% url 'dashboard_view' %}">Projects</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><a class="link-secondary" href="{% url 'dataset_list_view' project_id=pid %}">Datasets</a></li>
+                    </ol>
+                    </nav>
+                        <div>
+
+                            <label>
+        <input id="filter-completed" type="checkbox" class="filter" value="non-completed" checked/> Only show unfinished documents</label>
+                        </div>
+                    </div>
+                    <div class="card-body overflow-auto">
+        <table id="datafile-table" style="width: 100%; font-size: 14px;" class="table table-hover table-responsive">
+            <thead>
+                <tr class="text-center">
+                    <th class="no-sort">File</th>
+                    {%  comment %}
+                    <th class="no-search">Status</th>
+                    {% endcomment %}
+                </tr>
+            </thead>
+            <tbody style="cursor: pointer;">
+            </tbody>
+        </table>
+                    </div>
+</div>
+      </div>
+      <div class="col-sm-7 p-0">
+        <div class=" border-0">
+          <div class="card p-2 bg-light ps-4 sticky-top" >
+          <div class="d-inline-flex align-items-center justify-content-between">
+            <div id='tags' class="w-75">
+                    {% for t in tags %}
+                        <div style="margin-top: 0.2em;" class="d-inline-block">{{ t | safe }}</div>
+                    {% endfor %}
+            </div>
+           <div class="float-end">
+               {% comment %}
+               <div class="d-block btn-group mb-3">
+                   <button type="button" data-toggle="tooltip" title="previous" class="btn btn-outline-secondary btn-sm">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+</svg>
+                   </button>
+                   <button type="button" data-toggle="tooltip" title="next" class="btn btn-outline-secondary btn-sm float-end">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+</svg>
+                   </button>
+               </div>
+               {% endcomment %}
+               <div class="d-block float-right">
+                <input id="editcomplete" type="checkbox" checked data-toggle="toggle" data-on="Edit" data-off="Complete" data-onstyle="success" data-offstyle="warning" data-size="xs" disabled>
+               </div>
+           </div>
+          </div>
+          <div id="alert_div">
+          </div>
+          </div>
+
+          <div class="">
+                <div id="content-div"  class="anno-text-div" >Please select one document from the left table</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 p-0 m-0" style="border-left: 1px outset lightgrey;">
+        <div class="card border-0 sticky-top">
+          <div class="card-body table-responsive">
+              <table id="entity-table" style="width: 100%; font-size: 14px;" class="table table-hover table-bordered text-center">
+            <thead class="bg-light">
+                <tr class="text-center">
+                    <th class="no-sort">Start</th>
+                    <th class="no-sort">End</th>
+                    <th class="no-sort">Entity</th>
+                    <th class="no-sort">Text</th>
+                    <th class="no-sort">Annotator</th>
+                </tr>
+            </thead>
+            <tbody style="cursor: pointer;">
+            </tbody>
+        </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</main>
+{% endblock %}
+{% block script %}
+    <script>
+        const taggingWord = new TaggingWord($("#content-div"));
+        let c_tag_id = "";
+        var current_select;
+        var filter_c = false;
+        let doc_id = "";
+        var current_user = '{{ user.username }}';
+
+        function showalert(msg, classname) {
+            $("#alert_div").animate({
+                        height: '+=72px'
+                    }, 300);
+                    $('<div class="alert ' + classname + ' mt-3">' + msg + '</div>')
+                        .hide().appendTo('#alert_div').fadeIn(500);
+
+                    $(".alert").delay(2000).fadeOut(
+                        "normal",
+                        function () {
+                            $(this).remove();
+                        });
+
+                    $("#alert_div").delay(2500).animate({
+                        height: '0px'
+                    }, 300);
+        }
+
+        $(function () {
+            {#$.fn.DataTable.ext.pager.numbers_length = 7;#}
+            var datafiles = $("#datafile-table").DataTable({
+                "searching": false,
+                "info": false,
+                "processing": true,
+                "serverSide": true,
+                "scrollY": "100%",
+                "lengthMenu": [15, 25, 50, 100],
+                "language": {
+                    "paginate": {
+                        next: '<div><img src="{% static 'chevron-right.svg' %}" /></div>', //&#8594;
+                        previous: '<div><img src="{% static 'chevron-left.svg' %}" /></div>', //'&#8592;'
+                    }
+                },
+                "pagingType": 'numbers',
+                "ajax": {
+                    url: '{% url 'get_list_view' %}',
+                    dataSrc: 'data',
+                    data: function (d) {
+                        d.list_type = 'df';
+                        d.d = {{ dataset_id }};
+                        d.filter_completed = $('#filter-completed').prop('checked');
+                    },
+                },
+                "columns": [
+                    {#{"data": "name"},#}
+                    {#{"data": "status"},#}
+
+                    {
+                        "data": "name",
+                        "render": function (data, type, row, meta) {
+                            status_icon = " <div style='color: black' class='float-end'><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-circle\" viewBox=\"0 0 16 16\">\n" +
+                                "  <path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>\n" +
+                                "</svg></div>";
+                            if (row.status_code == 'C') {
+                                status_icon = " <div style='color: green' class='float-end'><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-circle-fill\" viewBox=\"0 0 16 16\">\n" +
+                                "  <circle cx=\"8\" cy=\"8\" r=\"8\"/>\n" +
+                                "</svg></div>";
+                            } else if (row.status_code == 'WIP') {
+                                status_icon = " <div style='color: red' class='float-end'><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-circle-half\" viewBox=\"0 0 16 16\">\n" +
+                                    "  <path d=\"M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z\"/>\n" +
+                                    "</svg></div>";
+                            }
+                            return '<div class="float-start text-break w-75">' + data + '</div>' + status_icon;
+                        }
+                    }
+                ],
+                fixedColumns: true
+            });
+
+            var entity_table = $("#entity-table").DataTable({
+                "searching": false,
+                "info": false,
+                "paging": false,
+                'pageLength': -1,
+                "ajax": {
+                    url: '{% url 'get_entities_by_doc_view' %}',
+                    dataSrc: 'data',
+                    data: function (d) {
+                        d.doc_id = doc_id;
+                        {#d.annotator = current_user;#}
+                    },
+                },
+                "columns": [
+                    {"data": "start"},
+                    {"data": "end"},
+                    {"data": "entity", "render": function (data, type, row, meta) {
+                            return '<span style="font-weight:bolder;color:' + row.entity_color + '">' + data + '</span>';
+                        }},
+                    {"data": "text"},
+                    {"data": "annotator"},
+
+                ],
+            });
+
+/*
+            $('#content-div').on("mouseup", '.anno-entity', function(e){
+
+                var check_status = $('#editcomplete').prop('checked');
+                console.log(check_status);
+
+                // delete tagging
+                taggingWord.deleteTag(e);
+
+                selected_row = datafiles.row(datafiles.$('tr.selected'));
+                let tagged_text = document.getElementById('content-div').innerHTML;
+                $.ajax({
+                    {#url: '{% url 'ajax_save_view' %}',#}
+                    method: 'POST',
+                    data: {'doc_id': selected_row.data().id, 'new_data': tagged_text, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                    success: function (data) {
+                        selected_row.data(data);
+                    }
+                });
+
+            });
+*/
+
+            function mouseup_action(e) {
+            var target = e.target;
+            var action = '';
+            var ops_entity = '';
+
+                e.stopPropagation();
+                {#console.log(current_user);#}
+
+                if (target.nodeName.toLowerCase() == 'span' && target.getAttribute('class').includes('anno-')) {
+                    // delete tagging
+                    {#console.log('delete tagging');#}
+                    ops_entity = taggingWord.deleteTag(e, current_user);
+                    action = 'delete';
+                } else {
+                    // check if select some characters
+                    var selected_range = document.getSelection();
+                    var selected_chars = selected_range.toString().trim();
+                    if (selected_chars.length === 0 || selected_range.rangeCount === 0 || selected_chars.length > 256) return void(0);
+                    // add tagging.
+                    {#console.log('add tagging');#}
+
+                    ops_entity = taggingWord.tagWord(e, current_user);
+                    action = 'add';
+                }
+
+                var selected_row = datafiles.row(datafiles.$('tr.selected'));
+                let tagged_text = document.getElementById('content-div').innerHTML;
+                $.ajax({
+                    url: '{% url 'ajax_save_view' %}',
+                    method: 'POST',
+                    data: {
+                        'doc_id': selected_row.data().id,
+                        'new_data': tagged_text,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'ops_entity': ops_entity,
+                        'action': action,
+                    },
+                    success: function (data) {
+                        selected_row.data(data['doc']);
+                        if ($("#editcomplete").prop('disabled')) {
+                            {#console.log('to enable the button');#}
+                            $("#editcomplete").bootstrapToggle('enable');
+                        }
+                        // update entity datatable.
+                        {#console.log(data['entities']);#}
+                        entity_table.ajax.reload();
+
+                    }
+                });
+        }
+
+            $("#datafile-table").on("click", " tbody tr", function(event) {
+                datafiles.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                //event.preventDefault()
+                doc_id = datafiles.row($(this)).data().id;
+                $.ajax({
+                    url: '{% url 'ajax_get_file_view' %}',
+                    method: 'GET',
+                    data: {
+                        'file_id': datafiles.row($(this)).data().id,},
+                    success: function(data) {
+                        document.getElementById('content-div').innerHTML = data['doc'];
+                        {#console.log(data['status']);#}
+                        if (data['status'] != 'NA') {
+                            $("#editcomplete").bootstrapToggle('enable');
+                        } else {
+                            $("#editcomplete").bootstrapToggle('on', true);
+                            $("#editcomplete").bootstrapToggle('disable');
+                        }
+                        if (data['status'] == 'C') {
+                            $("#editcomplete").bootstrapToggle('off', true);
+                            {#$("#content-div").css({pointerEvents:"none"});#}
+                            $("#content-div").off('mouseup');
+                            showalert('Please turn on "Edit" mode if you need to make changes!', 'alert-warning text-end ');
+                        }
+                        else {
+                            $("#editcomplete").bootstrapToggle('on', true);
+                            {#$("#content-div").css({pointerEvents:"auto"});#}
+                            $("#content-div").off('mouseup');
+                            $("#content-div").on('mouseup', mouseup_action);
+                        }
+
+                        // update entity table
+                        entity_table.ajax.reload();
+                    }
+                });
+
+
+            });
+
+
+            $("#editcomplete").change(function (event) {
+                var check_status = $(this).prop('checked')
+                //event.preventDefault()
+                var selected_row = datafiles.row(datafiles.$('tr.selected'));
+                {#console.log(selected_row.data())#}
+                $.ajax({
+                    url: '{% url 'ajax_edit_complete_view' %}',
+                    method: 'GET',
+                    data: {
+                        'file_id': selected_row.data().id,
+                        'check_status': check_status
+                    },
+                    success: function(data) {
+                        selected_row.data(data);
+                        {#console.log(data);#}
+                        if (data['status_code'] == 'C') {
+                            {#$("#content-div").css({pointerEvents:"none"});#}
+                            $("#content-div").off('mouseup');
+                        }
+                        else {
+                            {#$("#content-div").css({pointerEvents:"auto"});#}
+                            $("#content-div").off('mouseup');
+                            $("#content-div").on('mouseup', mouseup_action);
+                        }
+
+                    }
+                });
+                $(this)
+            });
+
+            $("#filter-completed").change(function (e) {
+               var filter_completed_status = $(this).prop('checked');
+               if (filter_completed_status == true) {
+                   // only show non-completed
+                   {#console.log('only show');#}
+                   datafiles.ajax.reload();
+               } else {
+                   //show all
+                   {#console.log('show all');#}
+                   datafiles.ajax.reload();
+               }
+               document.getElementById('content-div').innerHTML = "Please select one document from the left table";
+            });
+
+        });
+    </script>
+{% endblock %}
+

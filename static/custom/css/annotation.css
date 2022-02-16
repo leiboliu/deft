@@ -1,0 +1,100 @@
+.anno-text-div {
+    margin-top: 1rem;
+    line-height: 2rem;
+    padding: 20px;
+    border-color: #999;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -o-pre-wrap;
+}
+
+.anno-entity {
+    position: relative;
+    display: inline-block;
+    height: auto;
+    vertical-align: top;
+    text-align: center;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 2px solid;
+}
+.anno-entity span {
+    position: relative;
+    display: flex;
+    font-weight: 700;
+    vertical-align: middle;
+    align-items: center;
+    justify-content: center;
+}
+.anno-ner,
+.anno-words {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.anno-ner {
+    font-size: 12px;
+    color: #fff;
+}
+
+.anno-btn-raised {
+    transition: box-shadow .4s cubic-bezier(.25, .8, .25, 1), transform .4s cubic-bezier(.25, .8, .25, 1);
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26)
+}
+
+.anno-btn-raised {
+    transition: box-shadow .4s cubic-bezier(.25, .8, .25, 1), transform .4s cubic-bezier(.25, .8, .25, 1);
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26)
+}
+
+.anno-btn-raised:not([disabled]):active,
+.anno-btn-raised:not([disabled]):focus,
+.anno-btn-raised:not([disabled]):hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
+    transform: translate3d(0, -1px, 0);
+    font-weight: bolder
+}
+
+.anno-shadow {
+    overflow: hidden;
+    position: relative;
+    transform: translate3d(0, 0, 0)
+}
+
+.anno-shadow:before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #000 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform .5s, opacity 1.5s
+}
+
+.anno-shadow:active:before {
+    transform: scale(0, 0);
+    opacity: .1;
+    transition: 0s
+}
+
+table.dataTable td > img {
+        margin-left: 0.5em;
+        opacity: 0.3;
+        float: right;
+        cursor: pointer;
+    }
+
+.filter-green{
+        filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+    }

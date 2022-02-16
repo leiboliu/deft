@@ -1,0 +1,68 @@
+{% extends 'frontend/frontend_base.html' %}
+
+{% block header %}
+
+    <title>Dashboard</title>
+    <style>
+        a {
+            text-decoration: initial;
+        }
+    </style>
+
+{% endblock %}
+
+{% block datacontent %}
+        <main class="container flex-fill">
+        <nav aria-label="breadcrumb" class="navbar navbar-expand-lg navbar-light">
+            <ol class="breadcrumb" style="min-width: 100%">
+                <li class="breadcrumb-item active" aria-current="page"><a class="link-secondary" href="{% url 'dashboard_view' %}">Projects</a></li>
+            </ol>
+        </nav>
+        <table id="project-table" style="width: 100%; font-size: 15px;" class="table table-hover">
+            <thead>
+                <tr class="text-center" >
+                    {% comment %}
+                    <th style="padding-top: 0.7em">ID</th>
+                    {% endcomment %}
+                    <th class="no-sort">Project</th>
+                    <th class="no-search">Status</th>
+                    {% comment %}
+                    <th class="no-sort no-search">Project Directory</th>
+                    {% endcomment %}
+                </tr>
+            </thead>
+            <tbody style="cursor: pointer;" class="text-center">
+            </tbody>
+        </table>
+        </main>
+{% endblock %}
+{% block script %}
+    <script>
+        $(function () {
+            var project_table = $("#project-table").DataTable({
+                ajax: {
+                    url: '{% url 'get_list_view' %}',
+                    dataSrc: 'data',
+                    data: {'list_type': 'p'}
+                },
+                'columns': [
+                    {
+                        "data": "name",
+                        //"render": function (data, type, row, meta) {
+                        //    return '<a class="link-body" href="' + row.id + '"/>' + data + '</a>'
+                        //}
+                    },
+                    {"data": "status"}
+                ],
+            });
+
+            $("#project-table").on("click", " tbody tr", function(event) {
+                var data = project_table.row(this).data();
+                console.log(data);
+                var prj_id = data['id'];
+                document.location.href = prj_id;
+            });
+        });
+    </script>
+{% endblock %}
+

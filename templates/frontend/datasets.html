@@ -1,0 +1,81 @@
+{% extends 'frontend/frontend_base.html' %}
+
+{% block header %}
+
+    <title>Datasets</title>
+    <style>
+        a {
+            text-decoration: initial;
+        }
+    </style>
+
+{% endblock %}
+
+{% block datacontent %}
+        <main class="container flex-fill">
+        <nav aria-label="breadcrumb" class="navbar navbar-expand-lg navbar-light">
+            <ol class="breadcrumb" style="min-width: 100%">
+                <li class="breadcrumb-item active" aria-current="page"><a class="link-secondary" href="{% url 'dashboard_view' %}">Projects</a></li>
+                <li class="breadcrumb-item active" aria-current="page"><a class="link-secondary" href="{% url 'dataset_list_view' project_id=pid %}">Datasets</a></li>
+            </ol>
+        </nav>
+        <table id="dataset-table" style="width: 100%; font-size: 15px;" class="table table-hover">
+            <thead>
+                <tr class="text-center">
+                    <th class="no-sort">Dataset</th>
+                    <th class="no-search">Status</th>
+                    <th class="no-sort">Number of files</th>
+                    <th class="no-sort no-search">Not annotated</th>
+                    <th class="no-sort no-search">In progress</th>
+                    <th class="no-sort no-search">Completed</th>
+                </tr>
+            </thead>
+            <tbody style="cursor: pointer;" class="text-center">
+            </tbody>
+        </table>
+        </main>
+{% endblock %}
+{% block script %}
+    <script>
+        $(function () {
+            var dataset_table = $("#dataset-table").DataTable({
+                ajax: {
+                    url: '{% url 'get_list_view' %}',
+                    dataSrc: 'data',
+                    data: {'list_type': 'd', 'pid': {{ pid }}}
+                },
+                'columns': [
+                    {
+                        "data": 'name',
+                        //"render": function (data, type, row, meta) {
+                        //    return '<a class="link-primary" href="' + row.id + '"/>' + data + '</a>'
+                        //},
+                    },
+                    {
+                        "data": 'status'
+                    },
+                    {
+                        "data": 'num_total'
+                    },
+                    {
+                        "data": 'num_na'
+                    },
+                    {
+                        "data": 'num_wip'
+                    },
+                    {
+                        "data": 'num_complete'
+                    },
+                ],
+            });
+
+            $("#dataset-table").on("click", " tbody tr", function(event) {
+                var data = dataset_table.row(this).data();
+                console.log(data);
+                var dataset_table_id = data['id'];
+                document.location.href = dataset_table_id;
+            });
+        });
+    </script>
+{% endblock %}
+
