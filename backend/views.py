@@ -40,8 +40,8 @@ class AjaxGetLists(LoginRequiredMixin, View):
         if t == 'p':
             project_list = []
 
-            # pl = Project.objects.filter(datasets__assigned_staff__staff_id=usr.id)
-            pl = Project.objects.all()
+            pl = Project.objects.filter(assigned_member__member_id=usr.id)
+            # pl = Project.objects.all()
 
             for p in pl:
                 project_list.append(p.to_list())
@@ -53,7 +53,7 @@ class AjaxGetLists(LoginRequiredMixin, View):
             data_list = []
 
             pid = request.GET.get('pid')
-            dl = DataSet.objects.filter(project__id=pid)  #.filter(assigned_staff__staff_id=usr.id)
+            dl = DataSet.objects.filter(project__id=pid).filter(project__assigned_member__member_id=usr.id)
             # dl = DataSet.objects.all()
 
             for d in dl:

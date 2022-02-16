@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'frontend',
     'backend',
+    'member',
 
 ]
 

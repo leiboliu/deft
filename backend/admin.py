@@ -3,21 +3,20 @@ from django.contrib import admin
 # Register your models here.
 from backend.forms import TagForm, DatasetForm
 from backend.models import Project, DataSet, DataFile, Tag
+from member.models import Assignment
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ['name', 'colour']
     form = TagForm
 
-#
-# class AssignStaffInline(admin.StackedInline):
-#     model = Assignment
-
+class AssignMemberInline(admin.StackedInline):
+    model = Assignment
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'status']
     readonly_fields = ['top_dir', ]
-    # inlines = [AssignStaffInline]
+    inlines = [AssignMemberInline]
 
 
 class DatasetAdmin(admin.ModelAdmin):
