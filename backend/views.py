@@ -9,9 +9,9 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from backend.models import Project, DataSet, DataFile, TaggedEntity, Tag
+from backend.models import Project, DataSet, DataFile, TaggedEntity, Tag, PretrainedModel
 from utils.automated_annotation import auto_annotate
-from utils.data_backend import LocalFileSystemBackend
+from utils.data_backend import LocalFileSystemBackend, convert_tags_to_html
 from utils.file_conversion import write_results
 
 
@@ -23,7 +23,7 @@ class AjaxGetEntities(LoginRequiredMixin,View):
         if doc_id == "":
             entity_list = []
         else:
-            entities = TaggedEntity.objects.filter(doc__id=doc_id) #, annotator=user)
+            entities = TaggedEntity.objects.filter(doc__id=doc_id, annotator=user.username)
             entity_list = [entity.to_list() for entity in entities]
 
         return JsonResponse({'data': entity_list})
@@ -40,7 +40,10 @@ class AjaxGetLists(LoginRequiredMixin, View):
         if t == 'p':
             project_list = []
 
-            pl = Project.objects.filter(assigned_member__member_id=usr.id)
+            if usr.is_superuser:
+                pl = Project.objects.all()
+            else:
+                pl = Project.objects.filter(assigned_member__member_id=usr.id)
             # pl = Project.objects.all()
 
             for p in pl:
@@ -53,7 +56,10 @@ class AjaxGetLists(LoginRequiredMixin, View):
             data_list = []
 
             pid = request.GET.get('pid')
-            dl = DataSet.objects.filter(project__id=pid).filter(project__assigned_member__member_id=usr.id)
+            if usr.is_superuser:
+                dl = DataSet.objects.all()
+            else:
+                dl = DataSet.objects.filter(project__id=pid).filter(project__assigned_member__member_id=usr.id)
             # dl = DataSet.objects.all()
 
             for d in dl:
@@ -98,20 +104,28 @@ class AjaxGetFile(LoginRequiredMixin, View):
     def get(self, request):
         # project_id = request.GET.get('project_id')
         # dataset_id = request.GET.get('dataset_id')
-        file_id = request.GET.get('file_id')
+        doc_id = request.GET.get('file_id')
+        usr = request.user
 
-        file = DataFile.objects.filter(id=file_id)[0]
+        file = DataFile.objects.filter(id=doc_id)[0]
+        project_id = file.dataset.project.id
 
         with open(file.get_path(), 'r') as f:
+            # get raw content
             doc_content = f.read()
 
             if file.status == 'NA':
-                doc_content = auto_annotate(doc_content)
+                tags = auto_annotate(project_id, doc_id, doc_content)
+            else:
+                tags = TaggedEntity.objects.filter(doc__id=doc_id, annotator=usr.username).order_by('start_index')
+
+
+            doc_content = convert_tags_to_html(doc_content, tags);
 
             doc = mark_safe(doc_content)
 
         return JsonResponse({
-            'id': file_id,
+            'id': doc_id,
             'doc': doc,
             'status': file.status,
         })
@@ -191,6 +205,22 @@ class AjaxSaveView(LoginRequiredMixin, View):
         annotator = request.POST.get('ops_entity[annotator]')
 
         action = request.POST.get('action')
+        d_status = doc.status
+
+        if d_status == 'NA':
+            # copy machine predicted entities for current users for this doc
+            curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
+            tagged_entity_by_model = []
+            if len(curent_model) != 0:
+                tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc_id, annotator=curent_model.name)
+
+            if len(tagged_entity_by_model) != 0:
+                # copy predited entities to current users.
+                for tagged_entity in tagged_entity_by_model:
+                    tagged_entity.pk = None
+                    tagged_entity.annotator = "model"
+                    tagged_entity.save()
+
 
         if action == 'add':
             # update or create
@@ -209,16 +239,11 @@ class AjaxSaveView(LoginRequiredMixin, View):
                                         end_index=end_index, annotator=annotator).delete()
 
 
+        # d_path = doc.get_path(w=True)
+        # d_status = doc.status
 
-        # get all the entities to return
-        # all_entities = TaggedEntity.objects.filter(doc=doc, annotator=annotator)
-        # all_entities = [entity.to_list() for entity in all_entities]
-
-        d_path = doc.get_path(w=True)
-        d_status = doc.status
-
-        with open(d_path, 'w') as f:
-            f.write(request.POST.get('new_data'))
+        # with open(d_path, 'w') as f:
+        #     f.write(request.POST.get('new_data'))
 
         if d_status == 'NA':
             doc.status = 'WIP'

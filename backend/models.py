@@ -204,9 +204,12 @@ class DataFile(models.Model):
         }
 
     def get_path(self, w=False):
-        if self.status == 'NA' and not w:
-            return os.path.join(self.dataset.data_dir, f'input/{self.name}')
-        return os.path.join(self.dataset.data_dir, f'wip/{self.name}')
+        # only return raw content
+        return os.path.join(self.dataset.data_dir, f'{self.name}')
+
+        # if self.status == 'NA' and not w:
+        #     return os.path.join(self.dataset.data_dir, f'input/{self.name}')
+        # return os.path.join(self.dataset.data_dir, f'wip/{self.name}')
 
     def get_res_path(self):
         n = self.name.split('.')[0]
@@ -249,3 +252,20 @@ class TaggedEntity(models.Model):
 
         return super(TaggedEntity, self).save(*args, **kwargs)
 
+class PretrainedModel(models.Model):
+    FILE_STATUS = [
+        ('C', 'Current Model'),
+        ('S', 'Superseded'),
+    ]
+    # model: model.project_id.date_trained
+    name = models.CharField(max_length=256, null=False, unique=True, blank=False)
+    training_datetime = models.DateTimeField(editable=False)
+    project = models.ForeignKey(Project, related_name='project_pretrained_model', on_delete=models.CASCADE)
+    scores = models.CharField(max_length=256)
+    status = models.CharField(max_length=3, choices=FILE_STATUS, default='C')
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.training_datetime = timezone.now()
+
+        return super(PretrainedModel, self).save(*args, **kwargs)

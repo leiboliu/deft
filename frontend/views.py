@@ -74,9 +74,9 @@ class AnnotationView(LoginRequiredMixin, View):
     def get(self, request, project_id, dataset_id):
 
         project = Project.objects.filter(id=project_id)
-        first_dataset_file = DataFile.objects.filter(dataset__id=dataset_id).first()
+        # first_dataset_file = DataFile.objects.filter(dataset__id=dataset_id).first()
         tags_list = []
-        doc = None
+        # doc = None
 
         if project:
             tl = project[0].tags.all()
@@ -84,20 +84,22 @@ class AnnotationView(LoginRequiredMixin, View):
             for k in tl:
                 tags_list.append(k.to_display())
 
-        if first_dataset_file:
-            doc_id = first_dataset_file.id
-            with open(first_dataset_file.get_path(), 'r') as f:
-                doc_content = f.read()
-
-                if first_dataset_file.status == 'NA':
-                    doc_content = auto_annotate(doc_content)
-
-                doc = mark_safe(doc_content)
+        # if first_dataset_file:
+        #     doc_id = first_dataset_file.id
+        #     with open(first_dataset_file.get_path(), 'r') as f:
+        #         doc_content = f.read()
+        #
+        #         if first_dataset_file.status == 'NA':
+        #             doc_content = auto_annotate(doc_content)
+        #
+        #         doc = mark_safe(doc_content)
 
         return render(
             request, self.template_name,
             {
-                'doc_id': doc_id, 'tags': tags_list, 'doc': doc,
+                # 'doc_id': doc_id,
+                'tags': tags_list,
+                # 'doc': doc,
                 'pid': project_id, 'dataset_id': dataset_id,
             }
         )

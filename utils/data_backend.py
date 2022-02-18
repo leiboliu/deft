@@ -1,8 +1,36 @@
-
 import os
 from django.conf import settings
 
 from backend.models import DataFile
+
+
+def convert_tags_to_html(content, tags):
+    # input raw content and tags array/list
+    # tag array ordered by start_index
+    if len(tags) == 0:
+        return content
+    offset = 0
+    entity_text_template = '<span class="anno-entity" style="border-color: {};"><span ' \
+                           'class="anno-words" style="color: {};">{}</span><span class="anno-ner" ' \
+                           'style="background-color: {};">{}</span></span> '
+    # entity_text_template = '<span title="tagged by {}" class="anno-entity" style="border-color: {};"><span ' \
+    #                        'class="anno-words" style="color: {};">{}</span><span class="anno-ner" ' \
+    #                        'style="background-color: {};">{}</span></span> '
+    for entity in tags:
+        text_before = content[:(entity.start_index + offset)]
+        text = content[(entity.start_index + offset):(entity.end_index + offset)]
+        text_after = content[(entity.end_index + offset):]
+
+        if text != entity.text:
+            continue
+        entity_text = entity_text_template.format(
+            # entity.annotator,
+            entity.tag.colour, entity.tag.colour,
+            text, entity.tag.colour, entity.tag.name)
+        content = text_before + entity_text + text_after
+        offset += (len(entity_text) - len(text))
+
+    return content
 
 
 def convert_wip_to_output(wip_file, out_file):
@@ -11,7 +39,6 @@ def convert_wip_to_output(wip_file, out_file):
 
 
 class LocalFileSystemBackend:
-
     ROOT_DIR = settings.BASE_DIR / "local_data"
     INPUT_SUBDIR = 'input'
     WIP_SUBDIR = 'wip'
@@ -73,7 +100,7 @@ class LocalFileSystemBackend:
 
     def import_data_files(self, project, ds_list=None):
         _ = self
-        
+
         if not ds_list:
             ds_list = project.datasets.all()
 

@@ -98,7 +98,9 @@
                     <th class="no-sort">End</th>
                     <th class="no-sort">Entity</th>
                     <th class="no-sort">Text</th>
+                    {% comment %}
                     <th class="no-sort">Annotator</th>
+                    {% endcomment %}
                 </tr>
             </thead>
             <tbody style="cursor: pointer;">
@@ -209,7 +211,7 @@
                             return '<span style="font-weight:bolder;color:' + row.entity_color + '">' + data + '</span>';
                         }},
                     {"data": "text"},
-                    {"data": "annotator"},
+                    {#{"data": "annotator"},#}
 
                 ],
             });
@@ -238,9 +240,25 @@
 */
 
             function mouseup_action(e) {
-            var target = e.target;
+                var check_status = $("#editcomplete").prop('checked');
+                var target = e.target;
             var action = '';
             var ops_entity = '';
+                {#console.log(check_status);#}
+                if (check_status === false) {
+                    {#console.log('completed to show alert');#}
+                    if (target.nodeName.toLowerCase() == 'span') {
+                        showalert('Please turn on "Edit" mode if you need to make changes!', 'alert-warning text-end ');
+                        return void(0);
+                    }
+                    var selected_range = document.getSelection();
+                    var selected_chars = selected_range.toString().trim();
+                    if (selected_chars.length === 0 || selected_range.rangeCount === 0 || selected_chars.length > 256) return void(0);
+                    showalert('Please turn on "Edit" mode if you need to make changes!', 'alert-warning text-end ');
+                    selected_range.empty();
+                    return void(0);
+                }
+
 
                 e.stopPropagation();
                 {#console.log(current_user);#}
@@ -310,15 +328,18 @@
                         if (data['status'] == 'C') {
                             $("#editcomplete").bootstrapToggle('off', true);
                             {#$("#content-div").css({pointerEvents:"none"});#}
-                            $("#content-div").off('mouseup');
-                            showalert('Please turn on "Edit" mode if you need to make changes!', 'alert-warning text-end ');
+                            {#$("#content-div").off('mouseup');#}
+                            {#showalert('Please turn on "Edit" mode if you need to make changes!', 'alert-warning text-end ');#}
                         }
                         else {
                             $("#editcomplete").bootstrapToggle('on', true);
                             {#$("#content-div").css({pointerEvents:"auto"});#}
-                            $("#content-div").off('mouseup');
-                            $("#content-div").on('mouseup', mouseup_action);
+                            {#$("#content-div").off('mouseup');#}
+                            {#$("#content-div").on('mouseup', mouseup_action);#}
                         }
+
+                        $("#content-div").off('mouseup');
+                        $("#content-div").on('mouseup', mouseup_action);
 
                         // update entity table
                         entity_table.ajax.reload();
@@ -346,12 +367,12 @@
                         {#console.log(data);#}
                         if (data['status_code'] == 'C') {
                             {#$("#content-div").css({pointerEvents:"none"});#}
-                            $("#content-div").off('mouseup');
+                            {#$("#content-div").off('mouseup');#}
                         }
                         else {
                             {#$("#content-div").css({pointerEvents:"auto"});#}
-                            $("#content-div").off('mouseup');
-                            $("#content-div").on('mouseup', mouseup_action);
+                            {#$("#content-div").off('mouseup');#}
+                            {#$("#content-div").on('mouseup', mouseup_action);#}
                         }
 
                     }
