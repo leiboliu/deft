@@ -75,7 +75,7 @@
                </div>
                {% endcomment %}
                <div class="d-block float-right">
-                <input id="editcomplete" type="checkbox" checked data-toggle="toggle" data-on="Edit" data-off="Complete" data-onstyle="success" data-offstyle="warning" data-size="xs" disabled>
+                <input id="editcomplete" type="checkbox" checked data-toggle="toggle" data-on="Edit" data-off="Complete" data-onstyle="success" data-offstyle="warning" data-size="xs">
                </div>
            </div>
           </div>
@@ -276,6 +276,12 @@
                     // add tagging.
                     {#console.log('add tagging');#}
 
+                    if(Object.keys(taggingWord.currentTag).length === 0) {
+                        showalert('Please select one entity category first!', 'alert-info');
+                        selected_range.empty();
+                        return void(0);
+                    }
+
                     ops_entity = taggingWord.tagWord(e, current_user);
                     action = 'add';
                 }
@@ -294,10 +300,10 @@
                     },
                     success: function (data) {
                         selected_row.data(data['doc']);
-                        if ($("#editcomplete").prop('disabled')) {
-                            {#console.log('to enable the button');#}
+                        /*if ($("#editcomplete").prop('disabled')) {
+                            console.log('to enable the button');
                             $("#editcomplete").bootstrapToggle('enable');
-                        }
+                        }*/
                         // update entity datatable.
                         {#console.log(data['entities']);#}
                         entity_table.ajax.reload();
@@ -318,13 +324,13 @@
                         'file_id': datafiles.row($(this)).data().id,},
                     success: function(data) {
                         document.getElementById('content-div').innerHTML = data['doc'];
-                        {#console.log(data['status']);#}
-                        if (data['status'] != 'NA') {
+                        {#console.log(data['doc']);#}
+                        /*if (data['status'] != 'NA') {
                             $("#editcomplete").bootstrapToggle('enable');
                         } else {
                             $("#editcomplete").bootstrapToggle('on', true);
-                            $("#editcomplete").bootstrapToggle('disable');
-                        }
+                            $("#editcomplete").bootstrapToggle('enable');
+                        }*/
                         if (data['status'] == 'C') {
                             $("#editcomplete").bootstrapToggle('off', true);
                             {#$("#content-div").css({pointerEvents:"none"});#}
@@ -374,6 +380,7 @@
                             {#$("#content-div").off('mouseup');#}
                             {#$("#content-div").on('mouseup', mouseup_action);#}
                         }
+                        entity_table.ajax.reload();
 
                     }
                 });

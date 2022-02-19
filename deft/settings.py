@@ -132,3 +132,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'frontend_login_view'
 LOGOUT_REDIRECT_URL = 'frontend_view'
+
+# model list
+ner_models = {}

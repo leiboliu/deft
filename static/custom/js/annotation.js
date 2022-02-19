@@ -14,8 +14,8 @@ class TaggingWord  {
     tagWord(env, username) {
         const initial_content_html = this.content_div.html();
 
-        // expand to word
-        snapSelectionToWord();
+        // expand to word. Disabled because some time need to tag the entity within a word. Like John's room. John will be the entity
+        // snapSelectionToWord();
 
         var selection, selected_text, range_0;
         selection = document.getSelection();
@@ -47,12 +47,12 @@ class TaggingWord  {
         // console.log(selection.anchorOffset);
         // console.log(selection.focusOffset);
 
-        if(Object.keys(this.currentTag).length === 0) {
-            // alert('Please select a tag');
-            showalert('Please select one entity category first!', 'alert-info');
-            selection.empty();
-            return void(0);
-        }
+        // if(Object.keys(this.currentTag).length === 0) {
+        //     // alert('Please select a tag');
+        //     showalert('Please select one entity category first!', 'alert-info');
+        //     selection.empty();
+        //     return void(0);
+        // }
 
         // make sure the selection is within the given div
         // console.log('Anchor: ', selection.anchorNode.parentElement.id);

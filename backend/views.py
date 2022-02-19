@@ -133,6 +133,8 @@ class AjaxGetFile(LoginRequiredMixin, View):
 
 class AjaxEditComplete(LoginRequiredMixin, View):
     def get(self, request):
+        usr = request.user
+
         file_id = request.GET.get('file_id')
         check_status = request.GET.get('check_status')
 
@@ -141,7 +143,23 @@ class AjaxEditComplete(LoginRequiredMixin, View):
         if check_status == 'true':
             doc.status = 'WIP'
         else:
+            if doc.status == 'NA':
+                # save the model trained results for current user
+                curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
+                tagged_entity_by_model = []
+                if len(curent_model) != 0:
+                    curent_model = curent_model[0]
+                    tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc.id, annotator=curent_model.name)
+
+                if len(tagged_entity_by_model) != 0:
+                    # copy predited entities to current users.
+                    for tagged_entity in tagged_entity_by_model:
+                        tagged_entity.pk = None
+                        tagged_entity.annotator = usr.username
+                        tagged_entity.save()
+            # set status as complete
             doc.status = 'C'
+
 
         doc.save()
 
@@ -212,13 +230,14 @@ class AjaxSaveView(LoginRequiredMixin, View):
             curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
             tagged_entity_by_model = []
             if len(curent_model) != 0:
+                curent_model = curent_model[0]
                 tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc_id, annotator=curent_model.name)
 
             if len(tagged_entity_by_model) != 0:
                 # copy predited entities to current users.
                 for tagged_entity in tagged_entity_by_model:
                     tagged_entity.pk = None
-                    tagged_entity.annotator = "model"
+                    tagged_entity.annotator = annotator
                     tagged_entity.save()
 
 
