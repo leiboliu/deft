@@ -232,6 +232,11 @@
                     method: 'POST',
                     data: {'doc_id': selected_row.data().id, 'new_data': tagged_text, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
                     success: function (data) {
+                    if (typeof data.id === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
                         selected_row.data(data);
                     }
                 });
@@ -299,6 +304,11 @@
                         'action': action,
                     },
                     success: function (data) {
+                    if (typeof data.id === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
                         selected_row.data(data['doc']);
                         /*if ($("#editcomplete").prop('disabled')) {
                             console.log('to enable the button');
@@ -323,6 +333,12 @@
                     data: {
                         'file_id': datafiles.row($(this)).data().id,},
                     success: function(data) {
+                    if (typeof data.id === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
+
                         document.getElementById('content-div').innerHTML = data['doc'];
                         {#console.log(data['doc']);#}
                         /*if (data['status'] != 'NA') {
@@ -369,6 +385,11 @@
                         'check_status': check_status
                     },
                     success: function(data) {
+                    if (typeof data.id === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
                         selected_row.data(data);
                         {#console.log(data);#}
                         if (data['status_code'] == 'C') {

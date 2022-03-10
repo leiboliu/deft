@@ -44,6 +44,7 @@ class LocalFileSystemBackend:
     INPUT_SUBDIR = 'input'
     WIP_SUBDIR = 'wip'
     OUTPUT_SUBDIR = 'output'
+    MODEL_SUBDIR = 'model'
 
     FILE_TYPE_PATH_MAPPING = {
         'input': (INPUT_SUBDIR, ''),
@@ -70,6 +71,8 @@ class LocalFileSystemBackend:
         if not os.path.exists(project.top_dir):
             print('creating dirs')
             os.mkdir(project.top_dir, 0o770)
+        if not os.path.exists(os.path.join(project.top_dir, self.MODEL_SUBDIR)):
+            os.mkdir(os.path.join(project.top_dir, self.MODEL_SUBDIR), 0o770)
 
     def create_dataset_dirs(self, project, ds_list=None):
         if not project.top_dir:
@@ -88,16 +91,16 @@ class LocalFileSystemBackend:
             if not os.path.exists(ds.data_dir):
                 os.mkdir(ds.data_dir, 0o770)
 
-            in_subdir = os.path.join(ds.data_dir, self.INPUT_SUBDIR)
-            wip_subdir = os.path.join(ds.data_dir, self.WIP_SUBDIR)
-            out_subdir = os.path.join(ds.data_dir, self.OUTPUT_SUBDIR)
-
-            if not os.path.exists(in_subdir):
-                os.mkdir(in_subdir, 0o770)
-            if not os.path.exists(wip_subdir):
-                os.mkdir(wip_subdir, 0o770)
-            if not os.path.exists(out_subdir):
-                os.mkdir(out_subdir, 0o770)
+            # in_subdir = os.path.join(ds.data_dir, self.INPUT_SUBDIR)
+            # wip_subdir = os.path.join(ds.data_dir, self.WIP_SUBDIR)
+            # out_subdir = os.path.join(ds.data_dir, self.OUTPUT_SUBDIR)
+            #
+            # if not os.path.exists(in_subdir):
+            #     os.mkdir(in_subdir, 0o770)
+            # if not os.path.exists(wip_subdir):
+            #     os.mkdir(wip_subdir, 0o770)
+            # if not os.path.exists(out_subdir):
+            #     os.mkdir(out_subdir, 0o770)
 
     def import_data_files(self, project, ds_list=None):
         _ = self
@@ -108,7 +111,8 @@ class LocalFileSystemBackend:
         for d in ds_list:
             if not d.data_dir:
                 continue
-            for f in os.listdir(os.path.join(d.data_dir, 'input')):
+            # for f in os.listdir(os.path.join(d.data_dir, 'input')):
+            for f in os.listdir(os.path.join(d.data_dir)):
                 if f.startswith('.'):
                     continue
                 DataFile.objects.get_or_create(dataset=d, name=f)

@@ -23,15 +23,15 @@ function import_data(pid, d_id) {
         });
     }
 
-    function export_data(id, t){
-        $.ajax({
-            url: 'ajax_export',
-            method: 'GET',
-            data: {'id': id, 'type': t},
-            success: function(data) {
-                console.log(data);
-                alert(data['stats']);
-            },
-            error: function(data) {alert(data['stats'])},
-        });
-    }
+    // function export_data(id, t){
+    //     $.ajax({
+    //         url: 'ajax_export',
+    //         method: 'GET',
+    //         data: {'id': id, 'type': t},
+    //         success: function(data) {
+    //             console.log(data);
+    //             alert(data['stats']);
+    //         },
+    //         error: function(data) {alert(data['stats'])},
+    //     });
+    // }

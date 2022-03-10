@@ -35,7 +35,7 @@ class LoginView(View):
 class LogoutView(LoginRequiredMixin, View):
     def get(self, request):
         usr = request.user
-        print(dir(usr))
+        # print(dir(usr))
 
         if usr and not usr.is_anonymous:
             logout(request)

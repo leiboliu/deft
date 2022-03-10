@@ -58,7 +58,7 @@
 
             $("#project-table").on("click", " tbody tr", function(event) {
                 var data = project_table.row(this).data();
-                console.log(data);
+
                 var prj_id = data['id'];
                 document.location.href = prj_id;
             });

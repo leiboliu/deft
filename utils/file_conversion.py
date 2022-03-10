@@ -1,7 +1,13 @@
+import os
+from xml.dom import minidom
 
 from bs4 import BeautifulSoup
-import re
+from pathlib import Path
 
+from lxml import etree
+
+from backend.models import TaggedEntity
+import xml.etree.ElementTree as ET
 
 CONTENT_DIV_ID = 'content-div'
 ANNO_ENTITY_CLASS = 'anno-entity'
@@ -70,50 +76,95 @@ def _write_to_xml(wip_content, p=None):
 
             f.write('</tags>')
 
+def CDATA(text=None):
+    element = ET.Element('![CDATA[')
+    element.text = text
+    return element
 
-def _write_to_xml_v2(wip_content, output_path):
+def indent(elem, level=0):
+    i = "\n" + level*"  "
+    j = "\n" + (level-1)*"  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for subelem in elem:
+            indent(subelem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = j
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = j
+    return elem
 
-    re_entity_span = re.compile(
-        r'<span\s+class="anno-entity".*?>'
-        r'<span\s+class="anno-words".*?>(?P<words>.*?)</span>'
-        r'<span\s+class="anno-ner".*?>(?P<tag>.*?)</span>'
-        r'</span>')
+def _write_to_xml_v2(text, text_entities, output_file):
+    data = etree.Element('deiddeft')
+    text_element = etree.SubElement(data, 'text')
+    text_element.text = etree.CDATA(text)
+    tag_element = etree.SubElement(data, 'tags')
+    for entity in text_entities:
+        entity_element = etree.SubElement(tag_element, entity.tag.name)
+        entity_element.set('start', str(entity.start_index))
+        entity_element.set('end', str(entity.end_index))
+        entity_element.set('text', entity.text)
+        entity_element.set('type', entity.tag.name)
 
-    tags = []
-    text_content = ''
+    xml_content = etree.tostring(data, method='xml', encoding='UTF-8',
+                                 pretty_print=True, xml_declaration=True)
+    with open(output_file, 'wb') as f:
+        f.write(xml_content)
 
-    while m := re_entity_span.search(wip_content):
-        print(
-            f'{m.start()} to {m.start() + len(m.group("words"))} [{m.group("tag")}]: '
-            f'{m.group("words")}'
-        )
-        tags.append([
-            m.group('tag'),
-            len(text_content) + m.start(),
-            len(text_content) + m.start() + len(m.group('words')),
-            m.group('words'),
-        ])
-        text_content += (wip_content[:m.start()] + m.group('words'))
-        wip_content = wip_content[m.end():]
-
-    text_content += wip_content
-
-    if output_path:
-        print(f'text:\n {text_content}\n')
-        with open(output_path, 'w') as f:
-            f.write(f'<text>\n{text_content}\n</text>\n')
-
-            f.write('<tags>\n')
-            for t in tags:
-                print(t)
-                f.write(
-                    f'<{t[0]} start="{t[1]}" end="{t[2]}" '
-                    f'words="{t[3]}" source="human">\n'
-                )
-            f.write('</tags>\n')
 
 
 def write_results(data_file):
-    wip_content = _get_wip(data_file)
-    _write_to_xml_v2(wip_content, data_file.get_res_path())
+    # input DataFile obj
+    with open(data_file.get_path(), 'r') as f:
+        text = f.read()
+
+    work_path = Path(data_file.get_path()).parent / 'export/'
+
+    if not work_path.exists():
+        work_path.mkdir(parents=True)
+
+    output_file = Path(data_file.get_path()).stem + '.xml'
+    output_file = work_path / output_file
+    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id, annotator='leibo')
+    _write_to_xml_v2(text, text_entities, output_file)
+
+
+def _write_deid_to_text(content, text_entities, output_file):
+    if len(text_entities) == 0:
+        return content
+    offset = 0
+    entity_text_template = '<**{}**>'
+
+    for entity in text_entities:
+        text_before = content[:(entity.start_index + offset)]
+        text = content[(entity.start_index + offset):(entity.end_index + offset)]
+        text_after = content[(entity.end_index + offset):]
+
+        # if text != entity.text:
+        #     continue
+        entity_text = entity_text_template.format(entity.tag.name)
+        content = text_before + entity_text + text_after
+        offset += (len(entity_text) - len(text))
+
+    # print(content)
+
+    with open(output_file, 'w') as f:
+        f.write(content)
+
+def export_deid_text(data_file):
+    # input DataFile obj
+    with open(data_file.get_path(), 'r') as f:
+        text = f.read()
+    work_path = Path(data_file.get_path()).parent / 'export/de-identified/'
+
+    if not work_path.exists():
+        work_path.mkdir(parents=True)
+    output_file = Path(data_file.get_path()).name
+    output_file = work_path / output_file
+    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id, annotator='leibo')
+    _write_deid_to_text(text, text_entities, output_file)
 

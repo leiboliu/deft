@@ -2,4 +2,5 @@ django==4.0.2
 backports.zoneinfo==0.2.1
 beautifulsoup4==4.10.0
 pytorch==1.10.2
-flair=0.10
+flair==0.10
+spacy==3.2.2

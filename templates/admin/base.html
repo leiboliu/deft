@@ -110,8 +110,8 @@
             url: '{% url 'ajax_import_view' %}',
             method: 'GET',
             data: {'project_id': pid, 'dataset_id': d_id},
-            success: function(data) {alert(data['status'])},
-            error: function(data) {alert(data['status'])},
+            success: function(data) {alert(data.status)},
+            error: function(data) {alert(data.status)},
 
         });
 
@@ -124,9 +124,22 @@
             data: {'id': id, 'type': t},
             success: function(data) {
                 console.log(data);
-                alert(data['stats']);
+                alert(data.status);
             },
-            error: function(data) {alert(data['stats'])},
+            error: function(data) {alert(data.status)},
+        });
+    }
+
+    function export_deid_data(id, t){
+        django.jQuery.ajax({
+            url: '{% url 'ajax_export_deid_view' %}',
+            method: 'GET',
+            data: {'id': id, 'type': t},
+            success: function(data) {
+                console.log(data);
+                alert(data.status);
+            },
+            error: function(data) {alert(data.status)},
         });
     }
 

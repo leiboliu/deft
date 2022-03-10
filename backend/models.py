@@ -6,6 +6,7 @@ import os
 from utils.dir_backend import LocalSystemDirs
 from django.utils import timezone
 
+
 class Tag(models.Model):
     name = models.CharField(max_length=64, null=False, unique=True, blank=False)
     colour = models.CharField(max_length=64, null=False, blank=False)
@@ -35,8 +36,28 @@ class Tag(models.Model):
         return self.name
 
 
-class Project(models.Model):
+class ProjectStatus(models.Model):
+    PROJECT_STATUS = [
+        ('ND', 'No Data Imported'),
+        ('DC', 'Directories Created'),
+        ('DA', 'Datasets Imported'),
+        ('C', 'Completed'),
+    ]
+    project_id = models.IntegerField()
+    status = models.CharField(max_length=3, choices=PROJECT_STATUS, default='NA')
+    annotator = models.IntegerField()  # refer to user id
 
+    def to_list(self):
+        return {
+            "id": self.id,
+            "project_id": self.project_id,
+            "annotator": self.annotator,
+            "status": self.get_status_display(),
+            "status_code": self.status
+        }
+
+
+class Project(models.Model):
     PROJECT_STATUS = [
         ('ND', 'No Data Imported'),
         ('DC', 'Directories Created'),
@@ -51,6 +72,7 @@ class Project(models.Model):
     status = models.CharField(
         max_length=4, default='ND', choices=PROJECT_STATUS
     )
+
     tags = models.ManyToManyField(Tag)
 
     class Meta:
@@ -100,8 +122,28 @@ class Project(models.Model):
         }
 
 
-class DataSet(models.Model):
+class DataSetStatus(models.Model):
+    DATASET_STATUS = [
+        ('ND', 'No Data Imported'),
+        ('DA', 'Datasets Imported'),
+        ('WIP', 'Work In Progress'),
+        ('C', 'Completed'),
+    ]
+    dataset_id = models.IntegerField()
+    status = models.CharField(max_length=3, choices=DATASET_STATUS, default='NA')
+    annotator = models.CharField(max_length=256)  # refer to username
 
+    def to_list(self):
+        return {
+            "id": self.id,
+            "dataset_id": self.dataset_id,
+            "annotator": self.annotator,
+            "status": self.get_status_display(),
+            "status_code": self.status
+        }
+
+
+class DataSet(models.Model):
     DATASET_STATUS = [
         ('ND', 'No Data Imported'),
         ('DA', 'Datasets Imported'),
@@ -143,7 +185,6 @@ class DataSet(models.Model):
             "num_complete": num_c
         }
 
-
     def get_counts(self):
         num_d = DataFile.objects.filter(dataset=self).count()
         num_n = DataFile.objects.filter(dataset=self).filter(status='NA').count()
@@ -163,7 +204,12 @@ class DataSet(models.Model):
         )
 
     def export_to_xml(self):
-        return mark_safe(f'''<input id="export_"{self.id}" type="button" onclick="export_data({self.id}, 'ds')" value="Export Dataset">''')
+        return mark_safe(
+            f'''<input id="export_"{self.id}" type="button" onclick="export_data({self.id}, 'ds')" value="Export Dataset">''')
+
+    def export_deid(self):
+        return mark_safe(
+            f'''<input id="export_"{self.id}" type="button" onclick="export_deid_data({self.id}, 'f')" value="Export de-identified Data">''')
 
     def __repr__(self):
         return self.title
@@ -172,8 +218,27 @@ class DataSet(models.Model):
         return self.title
 
 
-class DataFile(models.Model):
+class DocumentStatus(models.Model):
+    FILE_STATUS = [
+        ('NA', 'Not Annotated'),
+        ('WIP', 'Work In Progress'),
+        ('C', 'Complete'),
+    ]
+    doc_id = models.IntegerField()
+    status = models.CharField(max_length=3, choices=FILE_STATUS, default='NA')
+    annotator = models.CharField(max_length=256)  # refer to username
 
+    def to_list(self):
+        return {
+            "id": self.id,
+            "doc_id": self.doc_id,
+            "annotator": self.annotator,
+            "status": self.get_status_display(),
+            "status_code": self.status
+        }
+
+
+class DataFile(models.Model):
     FILE_STATUS = [
         ('NA', 'Not Annotated'),
         ('WIP', 'Work In Progress'),
@@ -190,10 +255,10 @@ class DataFile(models.Model):
         verbose_name_plural = '   Datafiles'
 
     def to_list(self):
-        b = mark_safe(
-            f'<a href="{self.dataset.project_id}/{self.dataset_id}/{self.id}">{self.id}</a>')
-        name = mark_safe(
-            f'<a href="{self.dataset.project_id}/{self.dataset_id}/{self.id}">{self.name}</a>')
+        # b = mark_safe(
+        #     f'<a href="{self.dataset.project_id}/{self.dataset_id}/{self.id}">{self.id}</a>')
+        # name = mark_safe(
+        #     f'<a href="{self.dataset.project_id}/{self.dataset_id}/{self.id}">{self.name}</a>')
         return {
             "id": self.id,
             "project_id": self.dataset.project_id,
@@ -216,7 +281,12 @@ class DataFile(models.Model):
         return os.path.join(self.dataset.data_dir, f'output/{n}.xml')
 
     def export_to_xml(self):
-        return mark_safe(f'''<input id="export_"{self.id}" type="button" onclick="export_data({self.id}, 'f')" value="Export file">''')
+        return mark_safe(
+            f'''<input id="export_"{self.id}" type="button" onclick="export_data({self.id}, 'f')" value="Export file">''')
+
+    def export_deid(self):
+        return mark_safe(
+            f'''<input id="export_"{self.id}" type="button" onclick="export_deid_data({self.id}, 'f')" value="Export de-identified Data">''')
 
     def __repr__(self):
         return self.name
@@ -226,7 +296,6 @@ class DataFile(models.Model):
 
 
 class TaggedEntity(models.Model):
-
     doc = models.ForeignKey(DataFile, related_name='entities', on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, related_name='entity_tags', on_delete=models.CASCADE)
     text = models.CharField(max_length=256)
@@ -252,6 +321,7 @@ class TaggedEntity(models.Model):
 
         return super(TaggedEntity, self).save(*args, **kwargs)
 
+
 class PretrainedModel(models.Model):
     FILE_STATUS = [
         ('C', 'Current Model'),
@@ -263,6 +333,7 @@ class PretrainedModel(models.Model):
     project = models.ForeignKey(Project, related_name='project_pretrained_model', on_delete=models.CASCADE)
     scores = models.CharField(max_length=256)
     status = models.CharField(max_length=3, choices=FILE_STATUS, default='C')
+    training_data_size = models.IntegerField()
 
     def save(self, *args, **kwargs):
         if not self.id:
