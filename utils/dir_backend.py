@@ -33,7 +33,7 @@ class LocalSystemDirs:
             print('creating dirs')
             os.mkdir(project.top_dir, 0o770)
             os.mkdir(os.path.join(project.top_dir, self.MODEL_SUBDIR), 0o770)
-            os.mkdir(os.path.join(project.top_dir, self.OUTPUT_SUBDIR), 0o770)
+            # os.mkdir(os.path.join(project.top_dir, self.OUTPUT_SUBDIR), 0o770)
 
     def create_dataset_dirs(self, project, ds_list=None):
         if not project.top_dir:

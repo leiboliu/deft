@@ -110,7 +110,13 @@
             url: '{% url 'ajax_import_view' %}',
             method: 'GET',
             data: {'project_id': pid, 'dataset_id': d_id},
-            success: function(data) {alert(data.status)},
+            success: function(data) {
+                if (typeof data.status === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
+                alert(data.status)},
             error: function(data) {alert(data.status)},
 
         });
@@ -123,7 +129,12 @@
             method: 'GET',
             data: {'id': id, 'type': t},
             success: function(data) {
-                console.log(data);
+                {#console.log(data);#}
+                if (typeof data.status === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
                 alert(data.status);
             },
             error: function(data) {alert(data.status)},
@@ -136,7 +147,12 @@
             method: 'GET',
             data: {'id': id, 'type': t},
             success: function(data) {
-                console.log(data);
+                {#console.log(data);#}
+                if (typeof data.status === "undefined") {
+                        alert("Session expired. Please login again");
+                        document.location.href = "{% url 'frontend_login_view' %}";
+                        return;
+                    }
                 alert(data.status);
             },
             error: function(data) {alert(data.status)},

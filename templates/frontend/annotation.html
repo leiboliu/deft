@@ -98,9 +98,8 @@
                     <th class="no-sort">End</th>
                     <th class="no-sort">Entity</th>
                     <th class="no-sort">Text</th>
-                    {% comment %}
                     <th class="no-sort">Annotator</th>
-                    {% endcomment %}
+
                 </tr>
             </thead>
             <tbody style="cursor: pointer;">
@@ -211,7 +210,13 @@
                             return '<span style="font-weight:bolder;color:' + row.entity_color + '">' + data + '</span>';
                         }},
                     {"data": "text"},
-                    {#{"data": "annotator"},#}
+                    {"data": "annotator", "render": function (data, type, row, meta) {
+                           annotator = data;
+                        if (data.includes('model')) {
+                            annotator = 'model';
+                        }
+                            return annotator ;
+                        }},
 
                 ],
             });
@@ -304,7 +309,8 @@
                         'action': action,
                     },
                     success: function (data) {
-                    if (typeof data.id === "undefined") {
+
+                    if (typeof data['doc'] === "undefined") {
                         alert("Session expired. Please login again");
                         document.location.href = "{% url 'frontend_login_view' %}";
                         return;
@@ -327,13 +333,14 @@
                 $(this).addClass('selected');
                 //event.preventDefault()
                 doc_id = datafiles.row($(this)).data().id;
+                document.getElementById('content-div').innerHTML = 'Loading...';
                 $.ajax({
                     url: '{% url 'ajax_get_file_view' %}',
                     method: 'GET',
                     data: {
                         'file_id': datafiles.row($(this)).data().id,},
                     success: function(data) {
-                    if (typeof data.id === "undefined") {
+                    if (typeof data['doc'] === "undefined") {
                         alert("Session expired. Please login again");
                         document.location.href = "{% url 'frontend_login_view' %}";
                         return;

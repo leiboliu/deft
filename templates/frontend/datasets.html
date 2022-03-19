@@ -71,7 +71,7 @@
 
             $("#dataset-table").on("click", " tbody tr", function(event) {
                 var data = dataset_table.row(this).data();
-                console.log(data);
+                {#console.log(data);#}
                 var dataset_table_id = data['id'];
                 document.location.href = dataset_table_id;
             });

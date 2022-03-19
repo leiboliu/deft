@@ -109,6 +109,7 @@ def _write_to_xml_v2(text, text_entities, output_file):
         entity_element.set('end', str(entity.end_index))
         entity_element.set('text', entity.text)
         entity_element.set('type', entity.tag.name)
+        entity_element.set('annotator', 'human' if 'model' not in entity.annotator else 'model')
 
     xml_content = etree.tostring(data, method='xml', encoding='UTF-8',
                                  pretty_print=True, xml_declaration=True)
@@ -129,7 +130,7 @@ def write_results(data_file):
 
     output_file = Path(data_file.get_path()).stem + '.xml'
     output_file = work_path / output_file
-    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id, annotator='leibo')
+    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id).order_by('start_index')
     _write_to_xml_v2(text, text_entities, output_file)
 
 
@@ -165,6 +166,6 @@ def export_deid_text(data_file):
         work_path.mkdir(parents=True)
     output_file = Path(data_file.get_path()).name
     output_file = work_path / output_file
-    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id, annotator='leibo')
+    text_entities = TaggedEntity.objects.filter(doc_id=data_file.id).order_by('start_index')
     _write_deid_to_text(text, text_entities, output_file)
 

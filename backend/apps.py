@@ -3,6 +3,8 @@ from django.apps import AppConfig
 from django.conf import settings
 
 
+
+
 class BackendConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'backend'
@@ -22,7 +24,24 @@ class BackendConfig(AppConfig):
                 tagger = SequenceTagger.load(model_path)
                 settings.CACHED_MODELS[str(project_id)] = tagger
                 print("load model {} successfully for project {}".format(model.name, project_id))
+                # predict all the NA files for this project
+                from backend.models import DataSet, DataFile, TaggedEntity
+                from utils.automated_annotation import auto_annotate
+                datafiles_na = DataFile.objects.filter(status='NA', dataset__project_id=project_id)
+                for file in datafiles_na:
+                    entities = TaggedEntity.objects.filter(doc=file)
+                    if len(entities) != 0 and (entities[0].annotator != model.name):
+                        entities.delete()
+                        entities = []
+
+                    if len(entities) == 0:
+                        with open(file.get_path(), 'r') as f:
+                            doc_content = f.read()
+                            auto_annotate(project_id, file.id, doc_content)
+
             print("Initialization done")
+
+
 
             if settings.AUTO_MODEL_RETRAINING:
                 # start the model training thread

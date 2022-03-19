@@ -14,7 +14,7 @@ from flair.embeddings import TransformerWordEmbeddings
 from flair.trainers import ModelTrainer
 # from torch.optim.lr_scheduler import OneCycleLR
 from django.conf import settings
-from backend.models import Project, DataFile, PretrainedModel, DocumentStatus, TaggedEntity
+from backend.models import Project, DataFile, PretrainedModel, TaggedEntity
 
 import spacy
 
@@ -79,10 +79,10 @@ class NERModelTrainer(Thread):
             print(self.ident)
             projects = Project.objects.all()
             for project in projects:
-                datafiles = DataFile.objects.filter(dataset__project_id=project.id)
-                datafiles_ids = [file.id for file in datafiles]
-                datafile_status_completed = DocumentStatus.objects.filter(doc_id__in=datafiles_ids, status='C',
-                                                                          annotator='1')
+                datafiles = DataFile.objects.filter(dataset__project_id=project.id, status='C')
+                # datafiles_ids = [file.id for file in datafiles]
+                # datafile_status_completed = DocumentStatus.objects.filter(doc_id__in=datafiles_ids, status='C',
+                #                                                           annotator='1')
 
                 pretrained_model = PretrainedModel.objects.filter(project_id=project.id).order_by(
                     '-training_data_size').first()
@@ -90,12 +90,12 @@ class NERModelTrainer(Thread):
                 if pretrained_model is not None:
                     last_training_data_size = pretrained_model.training_data_size
 
-                if len(datafile_status_completed) > 0 and \
-                        (len(datafile_status_completed) - last_training_data_size) >= settings.MODEL_RETRAIN_THRESHOLD:
+                if len(datafiles) > 0 and \
+                        (len(datafiles) - last_training_data_size) >= settings.MODEL_RETRAIN_THRESHOLD:
                     training_data = []
 
-                    for file in datafile_status_completed:
-                        text_entities = TaggedEntity.objects.filter(doc_id=file.doc_id, annotator='leibo')
+                    for file in datafiles:
+                        text_entities = TaggedEntity.objects.filter(doc_id=file.doc_id)
                         with open(text_entities[0].doc.get_path(), 'r') as f:
                             text = f.read()
 
@@ -167,7 +167,7 @@ class NERModelTrainer(Thread):
                             if final_score > current_best_score:
                                 new_model = PretrainedModel(project_id=project.id, name=model_name, status='C',
                                                             scores=str(final_score),
-                                                            training_data_size=len(datafile_status_completed))
+                                                            training_data_size=len(datafiles))
                                 new_model.save()
                                 current_model.status = 'S'
                                 current_model.save()
@@ -178,12 +178,12 @@ class NERModelTrainer(Thread):
                             else:
                                 new_model = PretrainedModel(project_id=project.id, name=model_name, status='S',
                                                             scores=str(final_score),
-                                                            training_data_size=len(datafile_status_completed))
+                                                            training_data_size=len(datafiles))
                                 new_model.save()
                         except PretrainedModel.DoesNotExist:
                             new_model = PretrainedModel(project_id=project.id, name=model_name, status='C',
                                                         scores=str(final_score),
-                                                        training_data_size=len(datafile_status_completed))
+                                                        training_data_size=len(datafiles))
                             new_model.save()
 
             time.sleep(settings.RETRAINING_CHECK_INTERVAL)

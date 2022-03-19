@@ -9,8 +9,7 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from backend.models import Project, DataSet, DataFile, TaggedEntity, Tag, PretrainedModel, ProjectStatus, DataSetStatus, \
-    DocumentStatus
+from backend.models import Project, DataSet, DataFile, TaggedEntity, Tag, PretrainedModel
 from utils.automated_annotation import auto_annotate
 from utils.data_backend import LocalFileSystemBackend, convert_tags_to_html
 from utils.file_conversion import write_results, export_deid_text
@@ -24,7 +23,8 @@ class AjaxGetEntities(LoginRequiredMixin,View):
         if doc_id == "":
             entity_list = []
         else:
-            entities = TaggedEntity.objects.filter(doc__id=doc_id, annotator=user.username)
+            # entities = TaggedEntity.objects.filter(doc__id=doc_id, annotator=user.username)
+            entities = TaggedEntity.objects.filter(doc__id=doc_id)
             entity_list = [entity.to_list() for entity in entities]
 
         return JsonResponse({'data': entity_list})
@@ -49,9 +49,9 @@ class AjaxGetLists(LoginRequiredMixin, View):
 
             for p in pl:
                 project = p.to_list()
-                status_by_user = ProjectStatus.objects.filter(project_id=project['id'], annotator=usr.id)
-                if len(status_by_user) != 0:
-                    project['status'] = status_by_user[0].get_status_display()
+                # status_by_user = ProjectStatus.objects.filter(project_id=project['id'], annotator=usr.id)
+                # if len(status_by_user) != 0:
+                #     project['status'] = status_by_user[0].get_status_display()
 
                 project_list.append(project)
 
@@ -70,25 +70,31 @@ class AjaxGetLists(LoginRequiredMixin, View):
 
             for d in dl:
                 dataset = d.to_list()
-                status_by_user = DataSetStatus.objects.filter(dataset_id=dataset['id'], annotator=usr.id)
-                if len(status_by_user) != 0:
-                    dataset['status'] = status_by_user[0].get_status_display()
+                # status_by_user = DataSetStatus.objects.filter(dataset_id=dataset['id'], annotator=usr.id)
+                # if len(status_by_user) != 0:
+                #     dataset['status'] = status_by_user[0].get_status_display()
 
                 datafiles = DataFile.objects.filter(dataset=d)
                 num_n = 0
                 num_w = 0
                 num_c = 0
                 for file in datafiles:
-                    try:
-                        datafile_status_by_user = DocumentStatus.objects.get(doc_id=file.id, annotator=usr.id)
-                        file.status = datafile_status_by_user.status
-                        if file.status == 'WIP':
-                            num_w += 1
-                        elif file.status == 'C':
-                            num_c += 1
-                        else:
-                            num_n += 1
-                    except DocumentStatus.DoesNotExist:
+                    # try:
+                    #     datafile_status_by_user = DocumentStatus.objects.get(doc_id=file.id, annotator=usr.id)
+                    #     file.status = datafile_status_by_user.status
+                    #     if file.status == 'WIP':
+                    #         num_w += 1
+                    #     elif file.status == 'C':
+                    #         num_c += 1
+                    #     else:
+                    #         num_n += 1
+                    # except DocumentStatus.DoesNotExist:
+                    #     num_n += 1
+                    if file.status == 'WIP':
+                        num_w += 1
+                    elif file.status == 'C':
+                        num_c += 1
+                    else:
                         num_n += 1
 
                 dataset['num_na'] = num_n
@@ -109,14 +115,14 @@ class AjaxGetLists(LoginRequiredMixin, View):
             dl = DataFile.objects.filter(dataset__id=d)
             # total = dl.count()
 
-            document_status_list_by_user = DocumentStatus.objects.filter(annotator=usr.id)
+            # document_status_list_by_user = DocumentStatus.objects.filter(annotator=usr.id)
             for d in dl:
                 doc = d.to_list()
                 # status_by_user = DocumentStatus.objects.filter(doc_id=doc['id'], annotator=usr.id)
-                for status_by_user in document_status_list_by_user:
-                    if status_by_user.doc_id == doc['id']:
-                        doc['status'] = status_by_user.get_status_display()
-                        doc['status_code'] = status_by_user.status
+                # for status_by_user in document_status_list_by_user:
+                #     if status_by_user.doc_id == doc['id']:
+                #         doc['status'] = status_by_user.get_status_display()
+                #         doc['status_code'] = status_by_user.status
                 # if len(status_by_user) != 0:
                 #     doc['status'] = status_by_user[0].get_status_display()
                 #     doc['status_code'] = status_by_user[0].status
@@ -160,9 +166,9 @@ class AjaxGetFile(LoginRequiredMixin, View):
         project_id = file.dataset.project.id
 
         # get file status by user
-        file_status_by_user = DocumentStatus.objects.filter(doc_id=doc_id, annotator=usr.id)
-        if len(file_status_by_user) != 0:
-            file.status = file_status_by_user[0].status
+        # file_status_by_user = DocumentStatus.objects.filter(doc_id=doc_id, annotator=usr.id)
+        # if len(file_status_by_user) != 0:
+        #     file.status = file_status_by_user[0].status
 
         with open(file.get_path(), 'r') as f:
             # get raw content
@@ -171,7 +177,8 @@ class AjaxGetFile(LoginRequiredMixin, View):
             if file.status == 'NA':
                 tags = auto_annotate(project_id, doc_id, doc_content)
             else:
-                tags = TaggedEntity.objects.filter(doc__id=doc_id, annotator=usr.username).order_by('start_index')
+                tags = TaggedEntity.objects.filter(doc__id=doc_id).order_by('start_index')
+                # tags = TaggedEntity.objects.filter(doc__id=doc_id, annotator=usr.username).order_by('start_index')
 
 
             doc_content = convert_tags_to_html(doc_content, tags);
@@ -194,37 +201,38 @@ class AjaxEditComplete(LoginRequiredMixin, View):
 
         doc = DataFile.objects.filter(id=file_id)[0]
         # get file status by user
-        file_status_by_user = DocumentStatus.objects.filter(doc_id=file_id, annotator=usr.id)
-        if len(file_status_by_user) != 0:
-            file_status_by_user = file_status_by_user[0]
-            doc.status = file_status_by_user.status
-        else:
-            file_status_by_user = DocumentStatus(doc_id=file_id, annotator=usr.id, status=doc.status)
+        # file_status_by_user = DocumentStatus.objects.filter(doc_id=file_id, annotator=usr.id)
+        # if len(file_status_by_user) != 0:
+        #     file_status_by_user = file_status_by_user[0]
+        #     doc.status = file_status_by_user.status
+        # else:
+        #     file_status_by_user = DocumentStatus(doc_id=file_id, annotator=usr.id, status=doc.status)
 
         if check_status == 'true':
-            file_status_by_user.status = 'WIP'
+            # file_status_by_user.status = 'WIP'
             doc.status = 'WIP'
         else:
-            if doc.status == 'NA':
-                # save the model trained results for current user
-                curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
-                tagged_entity_by_model = []
-                if len(curent_model) != 0:
-                    curent_model = curent_model[0]
-                    tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc.id, annotator=curent_model.name)
-
-                if len(tagged_entity_by_model) != 0:
-                    # copy predited entities to current users.
-                    for tagged_entity in tagged_entity_by_model:
-                        tagged_entity.pk = None
-                        tagged_entity.annotator = usr.username
-                        tagged_entity.save()
+            # if doc.status == 'NA':
+            #     # save the model trained results for current user
+            #     curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
+            #     tagged_entity_by_model = []
+            #     if len(curent_model) != 0:
+            #         curent_model = curent_model[0]
+            #         tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc.id, annotator=curent_model.name)
+            #
+            #     if len(tagged_entity_by_model) != 0:
+            #         # copy predited entities to current users.
+            #         for tagged_entity in tagged_entity_by_model:
+            #             tagged_entity.pk = None
+            #             tagged_entity.annotator = usr.username
+            #             tagged_entity.save()
             # set status as complete
-            file_status_by_user.status = 'C'
+            # file_status_by_user.status = 'C'
             doc.status = 'C'
 
 
-        file_status_by_user.save()
+        # file_status_by_user.save()
+        doc.save()
 
         dataset = doc.dataset
 
@@ -233,27 +241,31 @@ class AjaxEditComplete(LoginRequiredMixin, View):
         dl = DataFile.objects.filter(dataset=dataset)
 
         for df in dl:
-            file_status_by_user = DocumentStatus.objects.filter(doc_id=df.id, annotator=usr.id)
-            if len(file_status_by_user) != 0:
-                df.status = file_status_by_user[0].status
+            # file_status_by_user = DocumentStatus.objects.filter(doc_id=df.id, annotator=usr.id)
+            # if len(file_status_by_user) != 0:
+            #     df.status = file_status_by_user[0].status
 
             if df.status != 'C':
                 d_new_stat = 'WIP'
                 break
 
-
-        dataset_status_by_user = DataSetStatus.objects.filter(dataset_id=dataset.id, annotator=usr.id)
-        if len(dataset_status_by_user) != 0:
-            dataset_status_by_user = dataset_status_by_user[0]
-            dataset.status = dataset_status_by_user.status
-        else:
-            dataset_status_by_user = DataSetStatus(dataset_id=dataset.id, annotator=usr.id, status=dataset.status)
-            dataset_status_by_user.save()
-
-
         if dataset.status != d_new_stat:
-            dataset_status_by_user.status = d_new_stat
-            dataset_status_by_user.save(update_fields=['status'])
+            dataset.status = d_new_stat
+            dataset.save()
+
+
+        # dataset_status_by_user = DataSetStatus.objects.filter(dataset_id=dataset.id, annotator=usr.id)
+        # if len(dataset_status_by_user) != 0:
+        #     dataset_status_by_user = dataset_status_by_user[0]
+        #     dataset.status = dataset_status_by_user.status
+        # else:
+        #     dataset_status_by_user = DataSetStatus(dataset_id=dataset.id, annotator=usr.id, status=dataset.status)
+        #     dataset_status_by_user.save()
+
+
+        # if dataset.status != d_new_stat:
+        #     dataset_status_by_user.status = d_new_stat
+        #     dataset_status_by_user.save(update_fields=['status'])
 
         if dataset.status == 'C':
 
@@ -264,25 +276,29 @@ class AjaxEditComplete(LoginRequiredMixin, View):
             p_new_stat = 'C'
 
             for ds in dsl:
-                dataset_status_by_user = DataSetStatus.objects.filter(dataset_id=ds.id, annotator=usr.id)
-                if len(dataset_status_by_user) != 0:
-                    ds.status = dataset_status_by_user[0].status
+                # dataset_status_by_user = DataSetStatus.objects.filter(dataset_id=ds.id, annotator=usr.id)
+                # if len(dataset_status_by_user) != 0:
+                #     ds.status = dataset_status_by_user[0].status
 
                 if ds.status != 'C':
-                    p_new_stat = project.status
+                    p_new_stat = 'WIP'
                     break
 
-            project_status_by_user = ProjectStatus.objects.filter(project_id=doc.dataset.project.id, annotator=usr.id)
-            if len(project_status_by_user) != 0:
-                project_status_by_user = project_status_by_user[0]
-                project.status = project_status_by_user.status
-            else:
-                project_status_by_user = ProjectStatus(project_id=doc.dataset.project.id, annotator=usr.id, status=project.status)
-                project_status_by_user.save()
-
             if project.status != p_new_stat:
-                project_status_by_user.status = p_new_stat
-                project_status_by_user.save(update_fields=['status'])
+                project.status = p_new_stat
+                project.save()
+
+            # project_status_by_user = ProjectStatus.objects.filter(project_id=doc.dataset.project.id, annotator=usr.id)
+            # if len(project_status_by_user) != 0:
+            #     project_status_by_user = project_status_by_user[0]
+            #     project.status = project_status_by_user.status
+            # else:
+            #     project_status_by_user = ProjectStatus(project_id=doc.dataset.project.id, annotator=usr.id, status=project.status)
+            #     project_status_by_user.save()
+
+            # if project.status != p_new_stat:
+            #     project_status_by_user.status = p_new_stat
+            #     project_status_by_user.save(update_fields=['status'])
 
         return JsonResponse(
             doc.to_list()
@@ -315,30 +331,30 @@ class AjaxSaveView(LoginRequiredMixin, View):
 
         action = request.POST.get('action')
 
-        file_status_by_user = DocumentStatus.objects.filter(doc_id=doc_id, annotator=usr.id)
-        if len(file_status_by_user) != 0:
-            doc.status = file_status_by_user[0].status
-        else:
-            file_status_by_user = DocumentStatus(doc_id=doc_id, annotator=usr.id, status=doc.status)
+        # file_status_by_user = DocumentStatus.objects.filter(doc_id=doc_id, annotator=usr.id)
+        # if len(file_status_by_user) != 0:
+        #     doc.status = file_status_by_user[0].status
+        # else:
+        #     file_status_by_user = DocumentStatus(doc_id=doc_id, annotator=usr.id, status=doc.status)
 
         d_status = doc.status
 
 
 
-        if d_status == 'NA':
-            # copy machine predicted entities for current users for this doc
-            curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
-            tagged_entity_by_model = []
-            if len(curent_model) != 0:
-                curent_model = curent_model[0]
-                tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc_id, annotator=curent_model.name)
-
-            if len(tagged_entity_by_model) != 0:
-                # copy predited entities to current users.
-                for tagged_entity in tagged_entity_by_model:
-                    tagged_entity.pk = None
-                    tagged_entity.annotator = annotator
-                    tagged_entity.save()
+        # if d_status == 'NA':
+        #     # copy machine predicted entities for current users for this doc
+        #     curent_model = PretrainedModel.objects.filter(project__id=doc.dataset.project.id, status='C')
+        #     tagged_entity_by_model = []
+        #     if len(curent_model) != 0:
+        #         curent_model = curent_model[0]
+        #         tagged_entity_by_model = TaggedEntity.objects.filter(doc__id=doc_id, annotator=curent_model.name)
+        #
+        #     if len(tagged_entity_by_model) != 0:
+        #         # copy predited entities to current users.
+        #         for tagged_entity in tagged_entity_by_model:
+        #             tagged_entity.pk = None
+        #             tagged_entity.annotator = annotator
+        #             tagged_entity.save()
 
 
         if action == 'add':
@@ -353,9 +369,12 @@ class AjaxSaveView(LoginRequiredMixin, View):
                                                   })
         else:
             # delete
+            # TaggedEntity.objects.filter(doc=doc,
+            #                             start_index=start_index,
+            #                             end_index=end_index, annotator=annotator).delete()
             TaggedEntity.objects.filter(doc=doc,
                                         start_index=start_index,
-                                        end_index=end_index, annotator=annotator).delete()
+                                        end_index=end_index).delete()
 
 
         # d_path = doc.get_path(w=True)
@@ -366,10 +385,20 @@ class AjaxSaveView(LoginRequiredMixin, View):
 
         if d_status == 'NA':
             doc.status = 'WIP'
-            file_status_by_user.status = 'WIP'
-            file_status_by_user.save()
+            dataset = doc.dataset
+            if dataset.status != 'WIP':
+                dataset.status = 'WIP'
+                dataset.save()
+            project = dataset.project
+            if project.status != 'WIP':
+                project.status = 'WIP'
+                project.save()
+
+            # file_status_by_user.status = 'WIP'
+            # file_status_by_user.save()
 
         # file_status_by_user.save()
+        doc.save()
 
         return JsonResponse(
             {
@@ -463,7 +492,7 @@ class AjaxExportDeidView(LoginRequiredMixin, View):
             dl = DataFile.objects.filter(dataset__id=dsid)
 
             for f in dl:
-                write_results(f)
+                export_deid_text(f)
 
             return JsonResponse(
                 {'status': f'successfully exported dataset with id {dsid}'}

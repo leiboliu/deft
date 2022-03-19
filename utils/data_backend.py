@@ -10,12 +10,12 @@ def convert_tags_to_html(content, tags):
     if len(tags) == 0:
         return content
     offset = 0
-    entity_text_template = '<span class="anno-entity" style="border-color: {};"><span ' \
+    # entity_text_template = '<span class="anno-entity" style="border-color: {};"><span ' \
+    #                        'class="anno-words" style="color: {};">{}</span><span class="anno-ner" ' \
+    #                        'style="background-color: {};">{}</span></span>'
+    entity_text_template = '<span title="tagged by {}" class="anno-entity" style="border-color: {};"><span ' \
                            'class="anno-words" style="color: {};">{}</span><span class="anno-ner" ' \
                            'style="background-color: {};">{}</span></span>'
-    # entity_text_template = '<span title="tagged by {}" class="anno-entity" style="border-color: {};"><span ' \
-    #                        'class="anno-words" style="color: {};">{}</span><span class="anno-ner" ' \
-    #                        'style="background-color: {};">{}</span></span> '
     for entity in tags:
         text_before = content[:(entity.start_index + offset)]
         text = content[(entity.start_index + offset):(entity.end_index + offset)]
@@ -24,7 +24,7 @@ def convert_tags_to_html(content, tags):
         # if text != entity.text:
         #     continue
         entity_text = entity_text_template.format(
-            # entity.annotator,
+            entity.annotator if 'model' not in entity.annotator else 'model',
             entity.tag.colour, entity.tag.colour,
             text, entity.tag.colour, entity.tag.name)
         content = text_before + entity_text + text_after

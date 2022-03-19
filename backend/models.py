@@ -36,31 +36,32 @@ class Tag(models.Model):
         return self.name
 
 
-class ProjectStatus(models.Model):
-    PROJECT_STATUS = [
-        ('ND', 'No Data Imported'),
-        ('DC', 'Directories Created'),
-        ('DA', 'Datasets Imported'),
-        ('C', 'Completed'),
-    ]
-    project_id = models.IntegerField()
-    status = models.CharField(max_length=3, choices=PROJECT_STATUS, default='NA')
-    annotator = models.IntegerField()  # refer to user id
-
-    def to_list(self):
-        return {
-            "id": self.id,
-            "project_id": self.project_id,
-            "annotator": self.annotator,
-            "status": self.get_status_display(),
-            "status_code": self.status
-        }
+# class ProjectStatus(models.Model):
+#     PROJECT_STATUS = [
+#         ('ND', 'No Data Imported'),
+#         ('DC', 'Directories Created'),
+#         ('DA', 'Datasets Imported'),
+#         ('C', 'Completed'),
+#     ]
+#     project_id = models.IntegerField()
+#     status = models.CharField(max_length=3, choices=PROJECT_STATUS, default='NA')
+#     annotator = models.IntegerField()  # refer to user id
+#
+#     def to_list(self):
+#         return {
+#             "id": self.id,
+#             "project_id": self.project_id,
+#             "annotator": self.annotator,
+#             "status": self.get_status_display(),
+#             "status_code": self.status
+#         }
 
 
 class Project(models.Model):
     PROJECT_STATUS = [
         ('ND', 'No Data Imported'),
         ('DC', 'Directories Created'),
+        ('WIP', 'Work In Progress'),
         ('DA', 'Datasets Imported'),
         ('C', 'Completed'),
     ]
@@ -122,25 +123,25 @@ class Project(models.Model):
         }
 
 
-class DataSetStatus(models.Model):
-    DATASET_STATUS = [
-        ('ND', 'No Data Imported'),
-        ('DA', 'Datasets Imported'),
-        ('WIP', 'Work In Progress'),
-        ('C', 'Completed'),
-    ]
-    dataset_id = models.IntegerField()
-    status = models.CharField(max_length=3, choices=DATASET_STATUS, default='NA')
-    annotator = models.CharField(max_length=256)  # refer to username
-
-    def to_list(self):
-        return {
-            "id": self.id,
-            "dataset_id": self.dataset_id,
-            "annotator": self.annotator,
-            "status": self.get_status_display(),
-            "status_code": self.status
-        }
+# class DataSetStatus(models.Model):
+#     DATASET_STATUS = [
+#         ('ND', 'No Data Imported'),
+#         ('DA', 'Datasets Imported'),
+#         ('WIP', 'Work In Progress'),
+#         ('C', 'Completed'),
+#     ]
+#     dataset_id = models.IntegerField()
+#     status = models.CharField(max_length=3, choices=DATASET_STATUS, default='NA')
+#     annotator = models.CharField(max_length=256)  # refer to username
+#
+#     def to_list(self):
+#         return {
+#             "id": self.id,
+#             "dataset_id": self.dataset_id,
+#             "annotator": self.annotator,
+#             "status": self.get_status_display(),
+#             "status_code": self.status
+#         }
 
 
 class DataSet(models.Model):
@@ -209,7 +210,7 @@ class DataSet(models.Model):
 
     def export_deid(self):
         return mark_safe(
-            f'''<input id="export_"{self.id}" type="button" onclick="export_deid_data({self.id}, 'f')" value="Export de-identified Data">''')
+            f'''<input id="export_"{self.id}" type="button" onclick="export_deid_data({self.id}, 'ds')" value="Export de-identified Data">''')
 
     def __repr__(self):
         return self.title
@@ -218,24 +219,24 @@ class DataSet(models.Model):
         return self.title
 
 
-class DocumentStatus(models.Model):
-    FILE_STATUS = [
-        ('NA', 'Not Annotated'),
-        ('WIP', 'Work In Progress'),
-        ('C', 'Complete'),
-    ]
-    doc_id = models.IntegerField()
-    status = models.CharField(max_length=3, choices=FILE_STATUS, default='NA')
-    annotator = models.CharField(max_length=256)  # refer to username
-
-    def to_list(self):
-        return {
-            "id": self.id,
-            "doc_id": self.doc_id,
-            "annotator": self.annotator,
-            "status": self.get_status_display(),
-            "status_code": self.status
-        }
+# class DocumentStatus(models.Model):
+#     FILE_STATUS = [
+#         ('NA', 'Not Annotated'),
+#         ('WIP', 'Work In Progress'),
+#         ('C', 'Complete'),
+#     ]
+#     doc_id = models.IntegerField()
+#     status = models.CharField(max_length=3, choices=FILE_STATUS, default='NA')
+#     annotator = models.CharField(max_length=256)  # refer to username
+#
+#     def to_list(self):
+#         return {
+#             "id": self.id,
+#             "doc_id": self.doc_id,
+#             "annotator": self.annotator,
+#             "status": self.get_status_display(),
+#             "status_code": self.status
+#         }
 
 
 class DataFile(models.Model):
