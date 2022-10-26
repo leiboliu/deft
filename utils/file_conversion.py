@@ -8,6 +8,7 @@ from lxml import etree
 
 from backend.models import TaggedEntity
 import xml.etree.ElementTree as ET
+from .automated_annotation import auto_annotate
 
 CONTENT_DIV_ID = 'content-div'
 ANNO_ENTITY_CLASS = 'anno-entity'
@@ -167,5 +168,10 @@ def export_deid_text(data_file):
     output_file = Path(data_file.get_path()).name
     output_file = work_path / output_file
     text_entities = TaggedEntity.objects.filter(doc_id=data_file.id).order_by('start_index')
+    # if non-deidentified, de-identify first
+    if len(text_entities) == 0:
+        # print("Automatically de-identify {}".format(data_file.get_path()))
+        text_entities = auto_annotate(data_file.dataset.project.id, data_file.id, text)
+
     _write_deid_to_text(text, text_entities, output_file)
 
