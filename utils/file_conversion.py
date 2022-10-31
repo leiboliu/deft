@@ -37,7 +37,7 @@ def _get_tags(wip_content):
 
 
 def _get_wip(data_file):
-    with open(data_file.get_path(w=True), 'r') as f:
+    with open(data_file.get_path(w=True), 'r', encoding="utf-8") as f:
         doc = f.read()
     return doc
 
@@ -63,7 +63,7 @@ def _write_to_xml(wip_content, p=None):
         print('</tags>')
 
     else:
-        with open(p, 'w') as f:
+        with open(p, 'w', encoding="utf-8") as f:
             f.write('<text>\n' + div_text + '</text>\n\n')
             f.write('<tags>\n')
             for tag in tag_list:
@@ -121,7 +121,7 @@ def _write_to_xml_v2(text, text_entities, output_file):
 
 def write_results(data_file):
     # input DataFile obj
-    with open(data_file.get_path(), 'r') as f:
+    with open(data_file.get_path(), 'r', encoding="utf-8") as f:
         text = f.read()
 
     work_path = Path(data_file.get_path()).parent / 'export/'
@@ -154,12 +154,12 @@ def _write_deid_to_text(content, text_entities, output_file):
 
     # print(content)
 
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding="utf-8") as f:
         f.write(content)
 
 def export_deid_text(data_file):
     # input DataFile obj
-    with open(data_file.get_path(), 'r') as f:
+    with open(data_file.get_path(), 'r', encoding="utf-8") as f:
         text = f.read()
     work_path = Path(data_file.get_path()).parent / 'export/de-identified/'
 

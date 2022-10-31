@@ -170,7 +170,7 @@ class AjaxGetFile(LoginRequiredMixin, View):
         # if len(file_status_by_user) != 0:
         #     file.status = file_status_by_user[0].status
 
-        with open(file.get_path(), 'r') as f:
+        with open(file.get_path(), 'r', encoding="utf-8") as f:
             # get raw content
             doc_content = f.read()
 

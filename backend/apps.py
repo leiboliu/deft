@@ -35,7 +35,7 @@ class BackendConfig(AppConfig):
                         entities = []
 
                     if len(entities) == 0:
-                        with open(file.get_path(), 'r') as f:
+                        with open(file.get_path(), 'r', encoding="utf-8") as f:
                             doc_content = f.read()
                             auto_annotate(project_id, file.id, doc_content)
 

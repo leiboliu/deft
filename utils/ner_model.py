@@ -96,7 +96,7 @@ class NERModelTrainer(Thread):
 
                     for file in datafiles:
                         text_entities = TaggedEntity.objects.filter(doc_id=file.doc_id)
-                        with open(text_entities[0].doc.get_path(), 'r') as f:
+                        with open(text_entities[0].doc.get_path(), 'r', encoding="utf-8") as f:
                             text = f.read()
 
                         entities = []
@@ -144,13 +144,10 @@ class NERModelTrainer(Thread):
                     trainer = ModelTrainer(tagger, corpus)
 
                     scores = trainer.train(data_file_path,
-                                           learning_rate=5.0e-6,
-                                           mini_batch_size=1,
+                                           learning_rate=0.1,
+                                           mini_batch_size=16,
                                            # mini_batch_chunk_size=1,
-                                           max_epochs=20,
-                                           # scheduler=OneCycleLR,
-                                           embeddings_storage_mode='none',
-                                           weight_decay=0.,
+                                           max_epochs=100,
                                            )
                     final_score = scores['test_score']
 

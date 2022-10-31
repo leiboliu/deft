@@ -7,7 +7,7 @@ DEBUG = True
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-(gb8a%_zsod)!+^74oocn+hmo7urrq1f1x!)o9y_fway#46$o+'
 
-ALLOWED_HOSTS = ['192.168.0.143', 'localhost']
+ALLOWED_HOSTS = ['192.168.0.143', 'localhost', '127.0.0.1']
 
 # Model will be retrained when completed document number increase to threshold
 MODEL_RETRAIN_THRESHOLD = 10

@@ -159,6 +159,7 @@
                     url: '{% url 'get_list_view' %}',
                     dataSrc: 'data',
                     data: function (d) {
+                        console.log(d);
                         d.list_type = 'df';
                         d.d = {{ dataset_id }};
                         d.filter_completed = $('#filter-completed').prop('checked');

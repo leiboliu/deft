@@ -121,11 +121,11 @@ class LocalFileSystemBackend:
         open(self._get_file_path(data_file, f_type), "rb")
 
     def write_wip(self, data_file, html_content):
-        with open(self._get_file_path(data_file, 'wip'), "wb") as o_file:
+        with open(self._get_file_path(data_file, 'wip'), "wb", encoding="utf-8") as o_file:
             o_file.write(html_content)
 
     def write_output(self, data_file):
-        with open(self._get_file_path(data_file, 'wip')) as wip_file, \
+        with open(self._get_file_path(data_file, 'wip'), encoding="utf-8") as wip_file, \
                 open(self._get_file_path(data_file, 'output')) as out_file:
             convert_wip_to_output(wip_file, out_file)
 
