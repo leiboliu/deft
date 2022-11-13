@@ -2,7 +2,8 @@ import os
 from django.conf import settings
 
 from backend.models import DataFile
-
+from pathlib import Path
+from tqdm import tqdm
 
 def convert_tags_to_html(content, tags):
     # input raw content and tags array/list
@@ -112,9 +113,14 @@ class LocalFileSystemBackend:
             if not d.data_dir:
                 continue
             # for f in os.listdir(os.path.join(d.data_dir, 'input')):
-            for f in os.listdir(os.path.join(d.data_dir)):
-                if f.startswith('.'):
-                    continue
+            # for f in os.listdir(os.path.join(d.data_dir)):
+            #     if f.startswith('.'):
+            #         continue
+            #     DataFile.objects.get_or_create(dataset=d, name=f)
+
+            # modified list
+            files = [file.name for file in Path(d.data_dir).glob("*.txt")]
+            for f in tqdm(files):
                 DataFile.objects.get_or_create(dataset=d, name=f)
 
     def open_file(self, data_file, f_type):

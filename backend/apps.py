@@ -24,20 +24,21 @@ class BackendConfig(AppConfig):
                 tagger = SequenceTagger.load(model_path)
                 settings.CACHED_MODELS[str(project_id)] = tagger
                 print("load model {} successfully for project {}".format(model.name, project_id))
+                # Disable this as it is a time-consuming process for large set.
                 # predict all the NA files for this project
-                from backend.models import DataSet, DataFile, TaggedEntity
-                from utils.automated_annotation import auto_annotate
-                datafiles_na = DataFile.objects.filter(status='NA', dataset__project_id=project_id)
-                for file in datafiles_na:
-                    entities = TaggedEntity.objects.filter(doc=file)
-                    if len(entities) != 0 and (entities[0].annotator != model.name):
-                        entities.delete()
-                        entities = []
-
-                    if len(entities) == 0:
-                        with open(file.get_path(), 'r', encoding="utf-8") as f:
-                            doc_content = f.read()
-                            auto_annotate(project_id, file.id, doc_content)
+                # from backend.models import DataSet, DataFile, TaggedEntity
+                # from utils.automated_annotation import auto_annotate
+                # datafiles_na = DataFile.objects.filter(status='NA', dataset__project_id=project_id)
+                # for file in datafiles_na:
+                #     entities = TaggedEntity.objects.filter(doc=file)
+                #     if len(entities) != 0 and (entities[0].annotator != model.name):
+                #         entities.delete()
+                #         entities = []
+                #
+                #     if len(entities) == 0:
+                #         with open(file.get_path(), 'r', encoding="utf-8") as f:
+                #             doc_content = f.read()
+                #             auto_annotate(project_id, file.id, doc_content)
 
             print("Initialization done")
 

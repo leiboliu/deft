@@ -132,12 +132,14 @@ def write_results(data_file):
     output_file = Path(data_file.get_path()).stem + '.xml'
     output_file = work_path / output_file
     text_entities = TaggedEntity.objects.filter(doc_id=data_file.id).order_by('start_index')
+    # if non-deidentified, de-identify first
+    if len(text_entities) == 0:
+        # print("Automatically de-identify {}".format(data_file.get_path()))
+        text_entities = auto_annotate(data_file.dataset.project.id, data_file.id, text)
     _write_to_xml_v2(text, text_entities, output_file)
 
 
 def _write_deid_to_text(content, text_entities, output_file):
-    if len(text_entities) == 0:
-        return content
     offset = 0
     entity_text_template = '<**{}**>'
 
@@ -151,8 +153,6 @@ def _write_deid_to_text(content, text_entities, output_file):
         entity_text = entity_text_template.format(entity.tag.name)
         content = text_before + entity_text + text_after
         offset += (len(entity_text) - len(text))
-
-    # print(content)
 
     with open(output_file, 'w', encoding="utf-8") as f:
         f.write(content)
