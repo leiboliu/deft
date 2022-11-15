@@ -38,10 +38,13 @@ def auto_annotate(project_id, doc_id, file_content):
             tag = Tag.objects.get(name=entity['tag'])
             entity['tag'] = tag
             entity_obj = TaggedEntity(**entity)
+            entity_obj.text = ''
             entity_obj.save()
 
         # retrieve the tags again.
         tags_by_model = TaggedEntity.objects.filter(doc__id=doc_id, annotator=current_model.name).order_by(
             'start_index')
+        for tag in tags_by_model:
+            tag.text = file_content[tag.start_index:tag.end_index]
 
     return tags_by_model

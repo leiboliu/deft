@@ -108,7 +108,7 @@ def _write_to_xml_v2(text, text_entities, output_file):
         entity_element = etree.SubElement(tag_element, entity.tag.name)
         entity_element.set('start', str(entity.start_index))
         entity_element.set('end', str(entity.end_index))
-        entity_element.set('text', entity.text)
+        entity_element.set('text', text[entity.start_index:entity.end_index])
         entity_element.set('type', entity.tag.name)
         entity_element.set('annotator', 'human' if 'model' not in entity.annotator else 'model')
 

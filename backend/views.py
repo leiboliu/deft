@@ -24,7 +24,14 @@ class AjaxGetEntities(LoginRequiredMixin,View):
             entity_list = []
         else:
             # entities = TaggedEntity.objects.filter(doc__id=doc_id, annotator=user.username)
+            data_file = DataFile.objects.get(id=doc_id)
+            with open(data_file.get_path(), 'r', encoding="utf-8") as f:
+                # get raw content
+                doc_content = f.read()
+
             entities = TaggedEntity.objects.filter(doc__id=doc_id)
+            for entity in entities:
+                entity.text = doc_content[entity.start_index : entity.end_index]
             entity_list = [entity.to_list() for entity in entities]
 
         return JsonResponse({'data': entity_list})
@@ -326,7 +333,8 @@ class AjaxSaveView(LoginRequiredMixin, View):
 
         start_index = request.POST.get('ops_entity[start]')
         end_index = request.POST.get('ops_entity[end]')
-        text = request.POST.get('ops_entity[text]')
+        # text = request.POST.get('ops_entity[text]')
+        text = ''
         annotator = request.POST.get('ops_entity[annotator]')
 
         action = request.POST.get('action')
