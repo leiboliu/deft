@@ -5,7 +5,8 @@ from django.utils.safestring import mark_safe
 import os
 from utils.dir_backend import LocalSystemDirs
 from django.utils import timezone
-
+import os
+from django.core.exceptions import ValidationError
 
 class Tag(models.Model):
     name = models.CharField(max_length=64, null=False, unique=True, blank=False)
@@ -58,6 +59,11 @@ class Tag(models.Model):
 
 
 class Project(models.Model):
+    def validate_dir(project_dir):
+        if not os.path.isdir(project_dir):
+            raise ValidationError('Invalid project dir')
+        return project_dir
+
     PROJECT_STATUS = [
         ('ND', 'No Data Imported'),
         ('DC', 'Directories Created'),
@@ -68,10 +74,11 @@ class Project(models.Model):
 
     title = models.CharField(max_length=256)
     top_dir = models.CharField(
-        max_length=256, null=True, blank=True, unique=True
+        max_length=1024, unique=True, help_text="This is the path on the server. Example: 'H:/project/test/'",
+        validators=[validate_dir]
     )
     status = models.CharField(
-        max_length=4, default='ND', choices=PROJECT_STATUS
+        max_length=4, default='DC', choices=PROJECT_STATUS
     )
 
     tags = models.ManyToManyField(Tag)
@@ -81,9 +88,9 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         super(Project, self).save(*args, **kwargs)
-        if not self.top_dir:
-            lb = LocalSystemDirs()
-            lb.create_project_dir(self)
+        # if not self.top_dir:
+        #     lb = LocalSystemDirs()
+        #     lb.create_project_dir(self)
 
     def __repr__(self):
         return self.title
@@ -120,6 +127,7 @@ class Project(models.Model):
             "id": self.id,
             "name": self.title,
             "status": self.get_status_display(),
+            "topdir": self.top_dir,
         }
 
 
@@ -152,6 +160,11 @@ class DataSet(models.Model):
         ('C', 'Completed'),
     ]
 
+    DATASET_TYPE = [
+        ('ANNO', 'Annotation'),
+        ('DEID', 'De-Identification'),
+        ]
+
     project = models.ForeignKey(
         Project, related_name='datasets', on_delete=models.CASCADE
     )
@@ -159,6 +172,9 @@ class DataSet(models.Model):
     data_dir = models.CharField(max_length=256, null=True, blank=True)
     status = models.CharField(
         max_length=4, default='ND', choices=DATASET_STATUS
+    )
+    type = models.CharField(
+        max_length=4, default='DEID', choices=DATASET_TYPE
     )
 
     class Meta:
@@ -169,9 +185,9 @@ class DataSet(models.Model):
         if not self.data_dir:
             lb = LocalSystemDirs()
             lb.create_dataset_dirs(self.project, [self])
-            if self.project.status in ['ND', 'DC']:
-                self.project.status = 'DC'
-                self.project.save()
+            # if self.project.status in ['ND', 'DC']:
+            #     self.project.status = 'DC'
+            #     self.project.save()
 
     def to_list(self):
         num_d, num_n, num_w, num_c = self.get_counts()
@@ -180,6 +196,7 @@ class DataSet(models.Model):
             "id": self.id,
             "name": self.title,
             "status": self.get_status_display(),
+            "type": self.type,
             "num_total": num_d,
             "num_na": num_n,
             "num_wip": num_w,
@@ -201,7 +218,8 @@ class DataSet(models.Model):
             + str(self.project.id)
             + ','
             + str(self.id)
-            + ')" value="Import Data">'
+            + ')" value="Import Data"'
+            + ('disabled>' if self.type=='DEID' else '>')
         )
 
     def export_to_xml(self):
@@ -299,7 +317,7 @@ class DataFile(models.Model):
 class TaggedEntity(models.Model):
     doc = models.ForeignKey(DataFile, related_name='entities', on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, related_name='entity_tags', on_delete=models.CASCADE)
-    text = models.CharField(max_length=256)
+    text = models.CharField(max_length=256, null=True, blank=True)
     annotator = models.CharField(max_length=256)
     start_index = models.IntegerField()
     end_index = models.IntegerField()

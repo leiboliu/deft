@@ -42,7 +42,12 @@ class BackendConfig(AppConfig):
 
             print("Initialization done")
 
-
+            if settings.AUTO_IMPORT_DATASETS:
+                # auto import the datasets with annotation type
+                from utils.data_backend import DatasetImporting
+                auto_import_datasets = DatasetImporting()
+                auto_import_datasets.start()
+                print('Auto dataset importing process startup')
 
             if settings.AUTO_MODEL_RETRAINING:
                 # start the model training thread

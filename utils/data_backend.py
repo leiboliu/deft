@@ -1,9 +1,12 @@
 import os
 from django.conf import settings
 
-from backend.models import DataFile
+from backend.models import *
 from pathlib import Path
 from tqdm import tqdm
+from threading import Thread
+import time
+
 
 def convert_tags_to_html(content, tags):
     # input raw content and tags array/list
@@ -120,8 +123,11 @@ class LocalFileSystemBackend:
 
             # modified list
             files = [file.name for file in Path(d.data_dir).glob("*.txt")]
+            if len(files) == 0:
+                return False
             for f in tqdm(files):
                 DataFile.objects.get_or_create(dataset=d, name=f)
+        return True
 
     def open_file(self, data_file, f_type):
         open(self._get_file_path(data_file, f_type), "rb")
@@ -137,3 +143,27 @@ class LocalFileSystemBackend:
 
     def audit_project_dirs(self, project, fix=True):
         pass
+
+class DatasetImporting(Thread):
+    def run(self) -> None:
+        while True:
+            print('Start auto-importing datasets...')
+            # import datasets
+            projects = Project.objects.all()
+            for project in projects:
+                datasets = DataSet.objects.filter(project_id=project.id, status='ND', type='ANNO')
+                for dataset in datasets:
+                    lb = LocalFileSystemBackend()
+                    result = lb.import_data_files(project, [dataset])
+
+                    if result:
+                        dataset.status = 'DA'
+                        dataset.save()
+
+                        if project.status in ['ND', 'DC']:
+                            project.status = 'DA'
+                            project.save()
+
+
+            print('Finish auto-importing datasets...')
+            time.sleep(settings.AUTO_IMPORT_CHECK_INTERVAL)

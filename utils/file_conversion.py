@@ -124,7 +124,7 @@ def write_results(data_file):
     with open(data_file.get_path(), 'r', encoding="utf-8") as f:
         text = f.read()
 
-    work_path = Path(data_file.get_path()).parent / 'export/'
+    work_path = Path(data_file.dataset.project.top_dir) / 'annotated/' / data_file.dataset.title
 
     if not work_path.exists():
         work_path.mkdir(parents=True)
@@ -161,7 +161,7 @@ def export_deid_text(data_file):
     # input DataFile obj
     with open(data_file.get_path(), 'r', encoding="utf-8") as f:
         text = f.read()
-    work_path = Path(data_file.get_path()).parent / 'export/de-identified/'
+    work_path = Path(data_file.dataset.project.top_dir) / 'de-identified/' / data_file.dataset.title
 
     if not work_path.exists():
         work_path.mkdir(parents=True)

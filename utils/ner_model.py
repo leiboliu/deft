@@ -95,7 +95,7 @@ class NERModelTrainer(Thread):
                     training_data = []
 
                     for file in datafiles:
-                        text_entities = TaggedEntity.objects.filter(doc_id=file.doc_id)
+                        text_entities = TaggedEntity.objects.filter(doc_id=file.id)
                         with open(text_entities[0].doc.get_path(), 'r', encoding="utf-8") as f:
                             text = f.read()
 
@@ -110,7 +110,7 @@ class NERModelTrainer(Thread):
                     # train model: training process data is saved to project_topdir/model/training_[currentdate]
                     now = datetime.now().strftime('%Y%m%d%H%M%S')
                     data_file_path = project.top_dir + '/model/train_' + now
-                    os.mkdir(data_file_path)
+                    os.makedirs(data_file_path, 0o755, True)
                     convert_to_bio_file(train, data_file_path + '/train.bio')
                     convert_to_bio_file(val, data_file_path + '/val.bio')
                     convert_to_bio_file(test, data_file_path + '/test.bio')
@@ -123,31 +123,24 @@ class NERModelTrainer(Thread):
                                                   dev_file='val.bio')
                     tag_dictionary = corpus.make_tag_dictionary(tag_type='ner')
 
-                    embeddings = TransformerWordEmbeddings(
-                        model='xlm-roberta-large',
-                        layers="-1",
-                        subtoken_pooling="first",
-                        fine_tune=False,
-                        use_context=True,
-                    )
+                    embeddings = TransformerWordEmbeddings('./pretrained/')
 
                     tagger = SequenceTagger(
                         hidden_size=256,
+                        dropout=0.5,
                         embeddings=embeddings,
                         tag_dictionary=tag_dictionary,
                         tag_type='ner',
                         use_crf=True,
                         use_rnn=True,
-                        reproject_embeddings=False,
                     )
 
                     trainer = ModelTrainer(tagger, corpus)
 
                     scores = trainer.train(data_file_path,
                                            learning_rate=0.1,
-                                           mini_batch_size=16,
-                                           # mini_batch_chunk_size=1,
-                                           max_epochs=100,
+                                           mini_batch_size=2,
+                                           max_epochs=10,
                                            )
                     final_score = scores['test_score']
 
@@ -182,6 +175,8 @@ class NERModelTrainer(Thread):
                                                         scores=str(final_score),
                                                         training_data_size=len(datafiles))
                             new_model.save()
+                            new_tagger = SequenceTagger.load(target_file)
+                            settings.CACHED_MODELS[str(project.id)] = new_tagger
 
             time.sleep(settings.RETRAINING_CHECK_INTERVAL)
 

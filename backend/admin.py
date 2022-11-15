@@ -14,13 +14,13 @@ class AssignMemberInline(admin.StackedInline):
     model = Assignment
 
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'status']
-    readonly_fields = ['top_dir', ]
+    list_display = ['id', 'title', 'status', 'top_dir']
+    readonly_fields = []
     inlines = [AssignMemberInline]
 
 
 class DatasetAdmin(admin.ModelAdmin):
-    list_display = ['id', 'project', 'title', 'status', 'import_data', 'export_to_xml', 'export_deid']
+    list_display = ['id', 'project', 'title', 'status', 'type', 'import_data', 'export_to_xml', 'export_deid']
     list_filter = ['project']
     readonly_fields = ['data_dir', ]
 

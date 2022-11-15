@@ -65,7 +65,7 @@ class AjaxGetLists(LoginRequiredMixin, View):
             if usr.is_superuser:
                 dl = DataSet.objects.filter(project_id=pid)
             else:
-                dl = DataSet.objects.filter(project__id=pid).filter(project__assigned_member__member_id=usr.id)
+                dl = DataSet.objects.filter(project__id=pid, type='ANNO').filter(project__assigned_member__member_id=usr.id)
             # dl = DataSet.objects.all()
 
             for d in dl:
@@ -365,7 +365,7 @@ class AjaxSaveView(LoginRequiredMixin, View):
                                                   annotator=annotator,
                                                   defaults={
                                                       'tag': currentTag,
-                                                      'text': text,
+                                                      'text': 'text',
                                                   })
         else:
             # delete

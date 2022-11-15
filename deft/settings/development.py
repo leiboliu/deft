@@ -14,9 +14,13 @@ MODEL_RETRAIN_THRESHOLD = 10
 # The ratios to split the data to train/val/test
 MODEL_TRAINING_DATA_RATIOS = '0.8:0.1:0.1'
 # if start auto training
-AUTO_MODEL_RETRAINING = False
+AUTO_MODEL_RETRAINING = True
 # Retraining check interval
-RETRAINING_CHECK_INTERVAL = 36000
+RETRAINING_CHECK_INTERVAL = 600
+
+# Auto import dataset
+AUTO_IMPORT_DATASETS = True
+AUTO_IMPORT_CHECK_INTERVAL = 600
 
 # de-id method: replace with surrogates or randomly generated words
 

@@ -20,6 +20,10 @@ AUTO_MODEL_RETRAINING = False
 # Retraining check interval
 RETRAINING_CHECK_INTERVAL = 36000
 
+# Auto import dataset
+AUTO_IMPORT_DATASETS = True
+AUTO_IMPORT_CHECK_INTERVAL = 60
+
 # de-id method: replace with surrogates or randomly generated words
 
 # session
