@@ -365,7 +365,7 @@ class AjaxSaveView(LoginRequiredMixin, View):
                                                   annotator=annotator,
                                                   defaults={
                                                       'tag': currentTag,
-                                                      'text': 'text',
+                                                      'text': text,
                                                   })
         else:
             # delete
