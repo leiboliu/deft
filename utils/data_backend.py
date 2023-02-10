@@ -57,8 +57,9 @@ class LocalFileSystemBackend:
     }
 
     def __init__(self):
-        if not os.path.exists(self.ROOT_DIR):
-            os.mkdir(self.ROOT_DIR, 0o770)
+        # if not os.path.exists(self.ROOT_DIR):
+        #     os.mkdir(self.ROOT_DIR, 0o770)
+        pass
 
     def _get_file_path(self, data_file, dest_file_type):
         return os.path.join(

@@ -18,8 +18,9 @@ class LocalSystemDirs:
     }
 
     def __init__(self):
-        if not os.path.exists(self.ROOT_DIR):
-            os.mkdir(self.ROOT_DIR, 0o770)
+        # if not os.path.exists(self.ROOT_DIR):
+        #     os.mkdir(self.ROOT_DIR, 0o770)
+        pass
 
     def create_project_dir(self, project):
         if not project.top_dir:
