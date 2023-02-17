@@ -2,7 +2,7 @@
 
 DEFT was developed using [Django framework](https://www.djangoproject.com/).
 
-The source code is for the research: [DEFT: a web-based system for DE-identifying Free Text data in electronic medical records using human in the loop deep learning]()
+The source code is for the research: [DEFT: a web-based system for DE-identifying Free Text data in electronic medical records using human in the loop deep learning](https://preprints.jmir.org/preprint/46322)
 
 ## Dependencies
 Python 3.9
