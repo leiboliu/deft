@@ -7,3 +7,4 @@ flair==0.10
 spacy==3.4.3
 transformers==4.3.3
 gunicorn
+whitenoise
