@@ -74,7 +74,7 @@ class Project(models.Model):
 
     title = models.CharField(max_length=256)
     top_dir = models.CharField(
-        max_length=1024, unique=True, help_text="This is the path on the server. Example: 'H:/project/test/'",
+        max_length=1024, default='', unique=True, help_text="This is the path on the server. Example: 'H:/project/test/'",
         validators=[validate_dir]
     )
     status = models.CharField(
