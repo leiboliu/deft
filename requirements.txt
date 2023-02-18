@@ -1,5 +1,5 @@
 django==4.0.2
-backports.zoneinfo==0.2.1
+backports.zoneinfo==0.2.1;python_version<"3.9"
 beautifulsoup4==4.10.0
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.13.0
