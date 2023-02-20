@@ -1,6 +1,4 @@
 from deft.settings.common import *
-import django_heroku
-django_heroku.settings(locals())
 # production settings to
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
