@@ -17,7 +17,9 @@ Django 4.0.2
 5. Using the following commands to run the demo.
 > python manage.py runserver
 6. Access the application via the following URLs:
+
 http://127.0.0.1:8000 (username/password: annotator1/annotator1 or annotator2/annotator2)
+
 http://127.0.0.1:8000/admin (username/password: admin/admin)
 
 ## Deploy DEFT in Gunicorn
