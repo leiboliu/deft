@@ -25,3 +25,5 @@ http://127.0.0.1:8000/admin (username/password: admin/admin)
 ## Deploy DEFT in Gunicorn
 Please refer to the topic: [How to use Django with Gunicorn](https://docs.djangoproject.com/en/4.1/howto/deployment/wsgi/gunicorn/)
 
+## License
+[GNU General Public License v3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
